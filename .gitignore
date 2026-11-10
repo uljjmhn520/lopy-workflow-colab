@@ -12,7 +12,8 @@
 .env
 *.key
 *key*.txt
-# 快取
+# 快取與模型
+models/
 __pycache__/
 *.pyc
 
@@ -22,3 +23,5 @@ pipeline/demo_local/out/
 pipeline/*/out/
 *.png.bak
 setup/smoke_out_colab/
+
+tests

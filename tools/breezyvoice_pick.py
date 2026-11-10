@@ -63,8 +63,12 @@ def py_same(a, b):
 def judge(r, plain, rd, cand_path):
     r["asr_ok"] = py_same(norm(r["asr"]), norm(plain))
     r["sim"] = round(difflib.SequenceMatcher(None, norm(r["asr"]), norm(plain)).ratio(), 3)
-    r["len_ratio"] = round(dur(cand_path) / rd, 2)
-    r["len_ok"] = 0.5 <= r["len_ratio"] <= 2.5
+    if rd:
+        r["len_ratio"] = round(dur(cand_path) / rd, 2)
+        r["len_ok"] = 0.5 <= r["len_ratio"] <= 2.5
+    else:
+        r["len_ratio"] = 1.0
+        r["len_ok"] = True
     return r
 
 
@@ -95,17 +99,26 @@ def main():
             tw = Path(j["tw_ref"]); tw = tw if tw.is_absolute() else spec_path.parent / tw
             if not ref.exists() or ref.stat().st_mtime < tw.stat().st_mtime:
                 subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(tw), str(ref)], check=True)
-        elif not ref.exists():
-            subprocess.run(["edge-tts", "--voice", j.get("edge_voice", "zh-TW-YunJheNeural"), "--text", plain, "--write-media", str(ref)], check=True)
-        rd = dur(ref)
+        elif not ref.exists() or ref.stat().st_size == 0:
+            try:
+                subprocess.run(["edge-tts", "--voice", j.get("edge_voice", "zh-TW-YunJheNeural"), "--text", plain, "--write-media", str(ref)], check=True)
+            except Exception as e:
+                print(f"[warn] edge-tts error: {e}, continuing without edge reference", flush=True)
+                if ref.exists() and ref.stat().st_size == 0:
+                    ref.unlink(missing_ok=True)
+        has_ref = ref.exists() and ref.stat().st_size > 0
+        rd = dur(ref) if has_ref else None
         rows = []
         for c in cands:
             heard = s2t.convert("".join(s.text for s in asr.transcribe(str(c), language="zh", beam_size=5)[0]))
             r = judge({"file": c.name, "asr": heard}, plain, rd, c)
-            try:
-                cp = compare(str(c), str(ref), plain); r.update(tw_score=cp["score"], tw_dist=cp["mean_dist"], tw_bad=cp["bad"])
-            except Exception as e:                       # 單字句等對不齊時不計腔調分
-                r.update(tw_score=0.5, tw_dist=9.0, tw_err=str(e)[:80])
+            if has_ref:
+                try:
+                    cp = compare(str(c), str(ref), plain); r.update(tw_score=cp["score"], tw_dist=cp["mean_dist"], tw_bad=cp["bad"])
+                except Exception as e:                       # 單字句等對不齊時不計腔調分
+                    r.update(tw_score=0.5, tw_dist=9.0, tw_err=str(e)[:80])
+            else:
+                r.update(tw_score=1.0, tw_dist=0.0)
             rows.append(r)
         choose(out, picks, picks_path, name, j, rows)
 

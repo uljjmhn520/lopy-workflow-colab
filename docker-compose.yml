@@ -1,0 +1,26 @@
+services:
+  voice:
+    build:
+      context: .
+      dockerfile: docker/voice/Dockerfile
+    image: lopy-voice:latest
+    container_name: lopy-voice
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - AI_ROOT=/workspace/models
+      - PYTHONUTF8=1
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .:/workspace
+      - ./models:/workspace/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    ipc: host
+    stdin_open: true
+    tty: true
