@@ -4,6 +4,8 @@
 本机连配音都跑不动（没有 NVIDIA 显卡、Mac）的人，可以用**全云端模式**：整套环境装在 Colab 上，整支片在云端做完再下载。
 
 > 所有数字都是 2026-10-10 在 Colab（Google AI Pro 帐号，每月 200 运算单元）实测。Colab 的方案、价格、可用显卡随时会变。
+>
+> 💡 **模型存储与 Google Drive 避坑指南**：切勿将 42GB 的 H3 核心权重放在 Google Drive 中直接挂载读取（会导致加载卡死 15~30 分钟、FUSE 虚拟驱动崩溃或触发 Google 24 小时下载配额限制）。推荐采用「本地 NVMe 临时盘多线程动态拉取大模型＋成片自动回传 Drive 归档」的动静分离架构。详细技术与基准对比请参阅 [docs/colab_storage_architecture.md](file:///home/debian/lopy_project/lopy-workflow-colab/docs/colab_storage_architecture.md)。
 
 ## ⚠️ 先读：H3 授权与机房位置
 
