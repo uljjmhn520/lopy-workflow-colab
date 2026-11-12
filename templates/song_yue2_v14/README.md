@@ -1,43 +1,43 @@
-# 唱詞歌範本：YuE2「14 版」（本機唱詞歌的主要範本）
+# 唱词歌范本：YuE2「14 版」（本机唱词歌的主要范本）
 
-> **歌曲（有人聲）生成順序（2026-10-27 實測後定案）**
-> 1. **Suno**（例如經 Kie.ai 的 API）：有帳號就用它。編曲最豐富、rap 最有攻擊性，還會有刷碟聲。
-> 2. **YuE2 14 版（本範本）**：沒有 Suno 帳號時，**先問使用者**要不要改用本機 YuE2，不要自己換。要變體就從 14 版改。
-> 3. **ACE-Step 1.5 XL**（`tools/ace_song.py`）：Plan C。拍速最穩，歌可以用，但人聲帶金屬聲。
+> **歌曲（有人声）生成顺序（2026-10-27 实测后定案）**
+> 1. **Suno**（例如经 Kie.ai 的 API）：有帐号就用它。编曲最丰富、rap 最有攻击性，还会有刷碟声。
+> 2. **YuE2 14 版（本范本）**：没有 Suno 帐号时，**先问使用者**要不要改用本机 YuE2，不要自己换。要变体就从 14 版改。
+> 3. **ACE-Step 1.5 XL**（`tools/ace_song.py`）：Plan C。拍速最稳，歌可以用，但人声带金属声。
 >
-> 純配樂（不唱詞）仍用 MiniMax Music 3（`tools/gen_music3.py`）。
+> 纯配乐（不唱词）仍用 MiniMax Music 3（`tools/gen_music3.py`）。
 
-這個配方是在 RTX 5090、ComfyUI 0.40 上，用一首中文饒舌對決（牛頓 vs 萊布尼茲）試了 13 種以上做法後，製作人聽過選出來的。
-同一場試做也記下了失敗的做法：
-- 自己寫 ABC 譜：拍速鎖得住，但編曲太平。
-- 翻唱參考歌：拍速對，但跟原歌還有一段差距。
-- full／off 規劃模式：拍速亂跳。
-- 段落之間留空檔，想讓 DJ 刷碟：反而比較差。
+这个配方是在 RTX 5090、ComfyUI 0.40 上，用一首中文饶舌对决（牛顿 vs 莱布尼兹）试了 13 种以上做法后，制作人听过选出来的。
+同一场试做也记下了失败的做法：
+- 自己写 ABC 谱：拍速锁得住，但编曲太平。
+- 翻唱参考歌：拍速对，但跟原歌还有一段差距。
+- full／off 规划模式：拍速乱跳。
+- 段落之间留空档，想让 DJ 刷碟：反而比较差。
 
 ## 配方
-| 項目 | 設定 |
+| 项目 | 设定 |
 |:--|:--|
-| 模型 | ComfyUI 原生 YuE2，`yue2_3b_int8_convrot.safetensors`（`setup/downloads_yue2.json`）；bf16 沒有明顯較好 |
-| 規劃模式 | **melody**：YuE2 只規劃人聲旋律，伴奏自由發揮 |
-| 風格 | 英文逗號標籤，**語言放第一個**（越前面影響越大），依序寫：Chinese → rap → boom bap battle rap → **DJ scratching, vinyl record scratches, turntablism** → aggressive rapid-fire rap flow, staccato punchy delivery → 聲音 → 鼓與 808 → 一個招牌取樣樂器 → 氣氛 → BPM。範例 `style_A_deep_raspy.txt`、`style_B_bright_sharp.txt` |
-| 歌詞 | 每段 4 句、段落標籤大寫、段落之間空一行：`[Verse]`×2 → `[Pre-Chorus]`（2 句）→ `[Chorus]`（最狠的句子）；有反轉再接 `[Bridge]` → `[Chorus]`。不要放空的 `[Intro]`／`[Interlude]`。範例 `lyrics_example_*.txt` |
-| 抽數 | **每首抽 10–12 個 seed**。約一半會掉到 89 BPM 或跳到 152，只留 143.6 的，再用逐句聽寫挑 |
+| 模型 | ComfyUI 原生 YuE2，`yue2_3b_int8_convrot.safetensors`（`setup/downloads_yue2.json`）；bf16 没有明显较好 |
+| 规划模式 | **melody**：YuE2 只规划人声旋律，伴奏自由发挥 |
+| 风格 | 英文逗号标签，**语言放第一个**（越前面影响越大），依序写：Chinese → rap → boom bap battle rap → **DJ scratching, vinyl record scratches, turntablism** → aggressive rapid-fire rap flow, staccato punchy delivery → 声音 → 鼓与 808 → 一个招牌取样乐器 → 气氛 → BPM。范例 `style_A_deep_raspy.txt`、`style_B_bright_sharp.txt` |
+| 歌词 | 每段 4 句、段落标签大写、段落之间空一行：`[Verse]`×2 → `[Pre-Chorus]`（2 句）→ `[Chorus]`（最狠的句子）；有反转再接 `[Bridge]` → `[Chorus]`。不要放空的 `[Intro]`／`[Interlude]`。范例 `lyrics_example_*.txt` |
+| 抽数 | **每首抽 10–12 个 seed**。约一半会掉到 89 BPM 或跳到 152，只留 143.6 的，再用逐句听写挑 |
 
 ## 指令
 ```
-python tools/yue_song.py <名稱> <角色> --style templates/song_yue2_v14/style_A_deep_raspy.txt --lyrics 我的歌詞.txt --out work/song_A
-<Voice venv>/python tools/pick_song.py work/song_A 我的歌詞.txt
+python tools/yue_song.py <名称> <角色> --style templates/song_yue2_v14/style_A_deep_raspy.txt --lyrics 我的歌词.txt --out work/song_A
+<Voice venv>/python tools/pick_song.py work/song_A 我的歌词.txt
 ```
-- 先開 ComfyUI（`tools/start_comfy.cmd`）。在 5090 上每首約 12–30 秒，12 首約 5 分鐘。
-- `pick_song.py` 會跳過拍速不對的歌，其餘依逐句聽寫排序，寫進 `pick.json`。
-- **不要整首直接聽寫**：rap 會讓聽寫幻覺出「中文字幕志願者」之類的字。
-- rap 的聽寫分數天生偏低，人工確認全對的 Suno 歌也只量到 0.63–0.70。**最後一定要人聽。**
+- 先开 ComfyUI（`tools/start_comfy.cmd`）。在 5090 上每首约 12–30 秒，12 首约 5 分钟。
+- `pick_song.py` 会跳过拍速不对的歌，其余依逐句听写排序，写进 `pick.json`。
+- **不要整首直接听写**：rap 会让听写幻觉出「中文字幕志愿者」之类的字。
+- rap 的听写分数天生偏低，人工确认全对的 Suno 歌也只量到 0.63–0.70。**最后一定要人听。**
 
-## 做變體時改哪裡
-- **換曲風**：只換取樣樂器、鼓型（boom bap／trap／drill）和氣氛詞。Chinese、rap、DJ scratching、連珠炮 flow 要留在前段。
-- **換聲音**：只改「male rapper, … voice」那一組。兩人對決時，每人用不同聲音描述，**各生一首**。同一首歌裡要求兩種聲音，出來會是同一個人。
-- **換速度**：改風格最後的 BPM，`pick_song.py` 加 `--bpm`，填 librosa 實際量到的值。
-- **做不到的**：刷碟聲不一定每首都有，因為 ABC 譜寫不進去，需要的話後製補。攻擊性和韻律感仍比 Suno 弱。
+## 做变体时改哪里
+- **换曲风**：只换取样乐器、鼓型（boom bap／trap／drill）和气氛词。Chinese、rap、DJ scratching、连珠炮 flow 要留在前段。
+- **换声音**：只改「male rapper, … voice」那一组。两人对决时，每人用不同声音描述，**各生一首**。同一首歌里要求两种声音，出来会是同一个人。
+- **换速度**：改风格最后的 BPM，`pick_song.py` 加 `--bpm`，填 librosa 实际量到的值。
+- **做不到的**：刷碟声不一定每首都有，因为 ABC 谱写不进去，需要的话后制补。攻击性和韵律感仍比 Suno 弱。
 
-## 授權
-YuE2 權重是 CC BY-NC 4.0，不能商用。要營利就改用 Suno（看你的方案條款）或 ACE-Step（MIT）。
+## 授权
+YuE2 权重是 CC BY-NC 4.0，不能商用。要营利就改用 Suno（看你的方案条款）或 ACE-Step（MIT）。

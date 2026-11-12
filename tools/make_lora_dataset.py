@@ -1,9 +1,9 @@
-"""用一張「單張半身定妝照」在本機產生角色 LoRA 的訓練資料（Qwen-Image-Edit 2511 換景別、角度、表情、場景，長相不變）。
-H3 venv（ComfyUI 要開著）：
+"""用一张「单张半身定妆照」在本机产生角色 LoRA 的训练资料（Qwen-Image-Edit 2511 换景别、角度、表情、场景，长相不变）。
+H3 venv（ComfyUI 要开著）：
   python make_lora_dataset.py --ref bust.png --trigger xyun_local --desc "the girl Xiaoyun, a bright 11-year-old Taiwanese schoolgirl with ..." --out dataset_dir [--n 24]
-輸出 dataset_dir/<序號>.png ＋ 同名 .txt（caption＝觸發詞＋外觀＋這張的景別動作），可直接給 AI Toolkit。
-原專案做法（2026-09-28〜10-01）：定妝照裁切幾張＋以定妝照為參考生成多角度多場景（當時用 Image 2.5），逐張目視審過再訓練；
-**產生後一定要逐張看，刪掉臉不像、多手多腳、有字的圖**，再開始訓練。"""
+输出 dataset_dir/<序号>.png ＋ 同名 .txt（caption＝触发词＋外观＋这张的景别动作），可直接给 AI Toolkit。
+原专案做法（2026-09-28〜10-01）：定妆照裁切几张＋以定妆照为参考生成多角度多场景（当时用 Image 2.5），逐张目视审过再训练；
+**产生后一定要逐张看，删掉脸不像、多手多脚、有字的图**，再开始训练。"""
 import argparse
 import shutil
 import subprocess

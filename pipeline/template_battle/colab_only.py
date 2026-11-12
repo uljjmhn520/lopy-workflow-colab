@@ -1,12 +1,12 @@
-"""只用 Colab 跑 H3（本機 ComfyUI 被別的 session 佔著時用，完全不碰本機佇列）。
-開跑前先用 cloud/colab_plan.py 算要開幾台，告訴使用者、等使用者同意（2026-11-06 起）；同一帳號開兩台＝COLAB_HOMES 寫兩次同一個家目錄。
-每個帳號開一台 G4（各 2 個 ComfyUI）→ 大家從同一個佇列一批一批拿 → 下載回 out/h3/<鏡>/ → 立刻關機並確認。
-失敗的鏡放回佇列，最多重試一輪；還是失敗就列出來。
-用法：python colab_only.py [鏡號…]    （不給鏡號＝全部還沒有 clip.mp4、或 spec 比 clip 新的鏡）
-環境變數：COLAB_HOMES（用 ; 分隔的家目錄，default＝目前帳號；預設只用目前帳號）、COLAB_NAMES（對應的 session 名，用 ; 分隔；預設 h3、h3_2…）、
-COLAB_CHUNK（每批幾支，預設 8）、COLAB_REUSE=1（確定開著的那台是自己開的才設）。
-⚠ 2026-11-06 踩坑：開工時發現同名 session 已經開著＝很可能是別的 session 的 VM。colab_h3.py start 會直接沿用、做完的 stop 還會把它關掉 →
-這裡預設跳過那個帳號（只在 COLAB_REUSE=1 才沿用）。開機前查過 status 也不夠，隔幾分鐘就可能被別的 session 開走。"""
+"""只用 Colab 跑 H3（本机 ComfyUI 被别的 session 占著时用，完全不碰本机伫列）。
+开跑前先用 cloud/colab_plan.py 算要开几台，告诉使用者、等使用者同意（2026-11-06 起）；同一帐号开两台＝COLAB_HOMES 写两次同一个家目录。
+每个帐号开一台 G4（各 2 个 ComfyUI）→ 大家从同一个伫列一批一批拿 → 下载回 out/h3/<镜>/ → 立刻关机并确认。
+失败的镜放回伫列，最多重试一轮；还是失败就列出来。
+用法：python colab_only.py [镜号…]    （不给镜号＝全部还没有 clip.mp4、或 spec 比 clip 新的镜）
+环境变数：COLAB_HOMES（用 ; 分隔的家目录，default＝目前帐号；预设只用目前帐号）、COLAB_NAMES（对应的 session 名，用 ; 分隔；预设 h3、h3_2…）、
+COLAB_CHUNK（每批几支，预设 8）、COLAB_REUSE=1（确定开著的那台是自己开的才设）。
+⚠ 2026-11-06 踩坑：开工时发现同名 session 已经开著＝很可能是别的 session 的 VM。colab_h3.py start 会直接沿用、做完的 stop 还会把它关掉 →
+这里预设跳过那个帐号（只在 COLAB_REUSE=1 才沿用）。开机前查过 status 也不够，隔几分钟就可能被别的 session 开走。"""
 import collections
 import json
 import os
@@ -51,29 +51,29 @@ n0 = len(q)
 tries = collections.Counter()
 lock = threading.Lock()
 t0 = time.time()
-log(f"{n0} 鏡，{len(homes)} 台 Colab")
+log(f"{n0} 镜，{len(homes)} 台 Colab")
 
 
 def taken(k):
-    """同名 session 已經開著？（別的 session 的 VM 不能沿用、更不能關）"""
+    """同名 session 已经开著？（别的 session 的 VM 不能沿用、更不能关）"""
     env = dict(os.environ, USERPROFILE=homes[k], HOME=homes[k]) if homes[k] else dict(os.environ)
     code = f"import sys; sys.path.insert(0, {str(TOOL.parent)!r}); sys.argv = ['x']; import colab_h3; print('ALIVE' if colab_h3.alive({names[k]!r}) else 'FREE')"
     return "ALIVE" in subprocess.run([sys.executable, "-c", code], env=env, capture_output=True, text=True, encoding="utf-8", errors="replace").stdout
 
 
 def worker(k):
-    tag = f"雲端{k + 1}"
+    tag = f"云端{k + 1}"
     if os.environ.get("COLAB_REUSE") != "1" and taken(k):
-        log(tag, f"{names[k]} 已經開著（可能是別的 session 的）→ 不用這個帳號")
+        log(tag, f"{names[k]} 已经开著（可能是别的 session 的）→ 不用这个帐号")
         return
-    log(tag, "開機（只裝 H3，約 4 分鐘）")
-    for attempt in range(int(os.environ.get("COLAB_START_TRIES", "8"))):   # G4 常回 503 Service Unavailable（Google 沒機器）：隔 2 分鐘再要
+    log(tag, "开机（只装 H3，约 4 分钟）")
+    for attempt in range(int(os.environ.get("COLAB_START_TRIES", "8"))):   # G4 常回 503 Service Unavailable（Google 没机器）：隔 2 分钟再要
         if colab(k, "start", "--h3-only").returncode == 0:
             break
-        log(tag, f"第 {attempt + 1} 次開不起來，2 分鐘後再試")
+        log(tag, f"第 {attempt + 1} 次开不起来，2 分钟后再试")
         time.sleep(120)
     else:
-        log(tag, "一直開不起來，放棄（鏡頭留給另一台）")
+        log(tag, "一直开不起来，放弃（镜头留给另一台）")
         colab(k, "stop")
         return
     try:
@@ -90,9 +90,9 @@ def worker(k):
                     tries[d.name] += 1
                     if tries[d.name] < 2:
                         q.append(d)
-            log(tag, f"這批 {len(batch) - len(bad)}/{len(batch)} 支，{time.time() - stamp:.0f} 秒，總進度剩 {len(q)} 支待拿")
+            log(tag, f"这批 {len(batch) - len(bad)}/{len(batch)} 支，{time.time() - stamp:.0f} 秒，总进度剩 {len(q)} 支待拿")
     finally:
-        log(tag, "關機"); colab(k, "stop")
+        log(tag, "关机"); colab(k, "stop")
 
 
 th = [threading.Thread(target=worker, args=(k,)) for k in range(len(homes))]
@@ -101,6 +101,6 @@ for i, t in enumerate(th):
 for t in th:
     t.join()
 miss = [d.name for d in sorted(H3.iterdir()) if d.is_dir() and need(d)]
-log(f"完成 {time.time() - t0:.0f} 秒；沒做出來：", miss)
+log(f"完成 {time.time() - t0:.0f} 秒；没做出来：", miss)
 for k in range(len(homes)):
     colab(k, "status")

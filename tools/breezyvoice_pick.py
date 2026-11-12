@@ -1,12 +1,12 @@
-"""BreezyVoice 候選自動挑選（Voice venv）。2026-10-07 建立，搭配 breezyvoice_batch.py。
-每句的所有 seed 候選：
-  1. faster-whisper large-v3 聽寫，必須和台詞逐字相同（數字、標點、注音標記不計）才算合格；
-  2. 長度要在 edge-tts 台灣國語參考音的 0.5–2.5 倍之間（擋掉拖長、亂音）；
-  3. 合格者依 pron_compare（對照 edge-tts 台灣國語參考音的每字音高曲線）分數排序，同分取平均距離小的。
-都不合格 → 取聽寫最接近的，標 needs_review。
-輸出 <out_dir>/<name>.wav（選中的那支，已去頭尾靜音：保留開頭 80 ms、結尾 150 ms）＋ <out_dir>/picks.json（全部候選分數）。
+"""BreezyVoice 候选自动挑选（Voice venv）。2026-10-07 建立，搭配 breezyvoice_batch.py。
+每句的所有 seed 候选：
+  1. faster-whisper large-v3 听写，必须和台词逐字相同（数字、标点、注音标记不计）才算合格；
+  2. 长度要在 edge-tts 台湾国语参考音的 0.5–2.5 倍之间（挡掉拖长、乱音）；
+  3. 合格者依 pron_compare（对照 edge-tts 台湾国语参考音的每字音高曲线）分数排序，同分取平均距离小的。
+都不合格 → 取听写最接近的，标 needs_review。
+输出 <out_dir>/<name>.wav（选中的那支，已去头尾静音：保留开头 80 ms、结尾 150 ms）＋ <out_dir>/picks.json（全部候选分数）。
 用法：C:\\AI\\Voice\\venv\\Scripts\\python.exe C:\\AI\\tools\\breezyvoice_pick.py jobs.json
-edge-tts 只產生參考音當「答案卷」，不進影片（要連網；微軟介面無公開授權）。job 給 "tw_ref"（自備參考音路徑）就不呼叫 edge-tts。"""
+edge-tts 只产生参考音当「答案卷」，不进影片（要连网；微软介面无公开授权）。job 给 "tw_ref"（自备参考音路径）就不呼叫 edge-tts。"""
 import difflib
 import json
 import re
@@ -43,19 +43,19 @@ def norm(s):
 
 
 def dur(p):
-    """有聲長度（切掉頭尾靜音；edge-tts 會把刪節號念成長停頓，不切會誤判長度）"""
+    """有声长度（切掉头尾静音；edge-tts 会把删节号念成长停顿，不切会误判长度）"""
     import librosa
     x, sr = sf.read(str(p), dtype="float32"); x = x.mean(axis=1) if x.ndim > 1 else x
     y, _ = librosa.effects.trim(x, top_db=35); return max(len(y), 1) / sr
 
 
 def py_same(a, b):
-    """拼音＋聲調相同就算對（ASR 把「阿禾」寫成「阿和」、「課」寫成「客」不算錯；聲調不同仍算錯）"""
+    """拼音＋声调相同就算对（ASR 把「阿禾」写成「阿和」、「课」写成「客」不算错；声调不同仍算错）"""
     if a == b:
         return True
     if re.search(r"[A-Za-z]", a + b):
         return False
-    from pron_check import expected                 # 已套台灣讀音（TW_OVERRIDE，例：連假＝jia4，pypinyin 會標成三聲）
+    from pron_check import expected                 # 已套台湾读音（TW_OVERRIDE，例：连假＝jia4，pypinyin 会标成三声）
     f = lambda s: [(x, t) for _, x, t, _ in zip(*expected(s))]
     return f(a) == f(b)
 
@@ -72,7 +72,7 @@ def judge(r, plain, rd, cand_path):
     return r
 
 
-RERANK = "--rerank" in sys.argv      # 不重跑 ASR，只用 picks.json 裡的聽寫結果重新判定與排序
+RERANK = "--rerank" in sys.argv      # 不重跑 ASR，只用 picks.json 里的听写结果重新判定与排序
 
 
 def main():
@@ -95,7 +95,7 @@ def main():
             rows = [judge(r, plain, dur(refdir / f"{name}.mp3"), out / "cand" / r["file"]) for r in picks[name]["cands"]]
             choose(out, picks, picks_path, name, j, rows); continue
         ref = refdir / f"{name}.mp3"
-        if j.get("tw_ref"):                              # 自備的台灣國語參考音（例如沒網路時用 Breeze 產生）
+        if j.get("tw_ref"):                              # 自备的台湾国语参考音（例如没网路时用 Breeze 产生）
             tw = Path(j["tw_ref"]); tw = tw if tw.is_absolute() else spec_path.parent / tw
             if not ref.exists() or ref.stat().st_mtime < tw.stat().st_mtime:
                 subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(tw), str(ref)], check=True)
@@ -115,7 +115,7 @@ def main():
             if has_ref:
                 try:
                     cp = compare(str(c), str(ref), plain); r.update(tw_score=cp["score"], tw_dist=cp["mean_dist"], tw_bad=cp["bad"])
-                except Exception as e:                       # 單字句等對不齊時不計腔調分
+                except Exception as e:                       # 单字句等对不齐时不计腔调分
                     r.update(tw_score=0.5, tw_dist=9.0, tw_err=str(e)[:80])
             else:
                 r.update(tw_score=1.0, tw_dist=0.0)
@@ -124,8 +124,8 @@ def main():
 
 
 def write_trimmed(src, dst, head=0.08, tail=0.15):
-    """選中的那支去掉頭尾靜音（保留開頭 80 ms、結尾 150 ms），台詞放到時間軸上才會準時開口、字幕對得上。
-    BreezyVoice 候選頭尾常有 0.3–1.0 秒靜音（2026-10-07 全新安裝測試發現）。回傳 [裁掉的開頭秒數, 保留的長度秒數]。"""
+    """选中的那支去掉头尾静音（保留开头 80 ms、结尾 150 ms），台词放到时间轴上才会准时开口、字幕对得上。
+    BreezyVoice 候选头尾常有 0.3–1.0 秒静音（2026-10-07 全新安装测试发现）。回传 [裁掉的开头秒数, 保留的长度秒数]。"""
     import librosa
     x, sr = sf.read(str(src), dtype="float32")
     mono = x.mean(axis=1) if x.ndim > 1 else x

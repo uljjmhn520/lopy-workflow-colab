@@ -21,7 +21,7 @@ def find():
     for r in roots:
         for p in r.rglob("colab_cli/console.py"):
             return p
-    sys.exit("找不到 colab_cli/console.py：先執行  uv tool install google-colab-cli")
+    sys.exit("找不到 colab_cli/console.py：先执行  uv tool install google-colab-cli")
 
 
 p = find(); bak = p.with_suffix(".py.bak")

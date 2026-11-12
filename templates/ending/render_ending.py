@@ -1,9 +1,9 @@
-"""《山獅霸的多重宇宙》頻道片尾範本（2026-09-30，阿福〈三個絕招〉定稿使用的版本）
-結構：N 張特寫靜幀（緩推＋下緣壓暗）＋每張 2 行「AI 工具・用途」名單 → 金色咒印法陣＋大標題逐字由光浮現、爆光、淡出。
+"""《山狮霸的多重宇宙》频道片尾范本（2026-09-30，阿福〈三个绝招〉定稿使用的版本）
+结构：N 张特写静帧（缓推＋下缘压暗）＋每张 2 行「AI 工具・用途」名单 → 金色咒印法阵＋大标题逐字由光浮现、爆光、淡出。
 用法（H3 venv 有 numpy／Pillow／ffmpeg 即可）：
     C:\\AI\\H3\\venv\\Scripts\\python.exe render_ending.py config.json
-config.json 範例見同資料夾 config_example.json。輸出 24fps、1920x1080、無音訊（配樂與音效在主片後製疊）。
-規則：名單依實際使用的工具填寫；非商用授權工具（使用者指示）不列名；MiniMax Music 3 等要求標示的授權需列名並揭露 AI 生成。"""
+config.json 范例见同资料夹 config_example.json。输出 24fps、1920x1080、无音讯（配乐与音效在主片后制叠）。
+规则：名单依实际使用的工具填写；非商用授权工具（使用者指示）不列名；MiniMax Music 3 等要求标示的授权需列名并揭露 AI 生成。"""
 import json, subprocess, sys
 from pathlib import Path
 import numpy as np
@@ -12,9 +12,9 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageChops
 HERE = Path(__file__).resolve().parent
 W, H, FPS = 1920, 1080, 24
 sys.path.insert(0, str(HERE.parents[1] / "tools"))
-from fonts import font  # noqa: E402  (Windows 字型；Linux 用文鼎楷書／Noto CJK)
-FONT_TITLE = font("kai")        # 標楷體：大標題
-FONT_BOLD = font("jhbd")        # 微軟正黑粗體：名單
+from fonts import font  # noqa: E402  (Windows 字型；Linux 用文鼎楷书／Noto CJK)
+FONT_TITLE = font("kai")        # 标楷体：大标题
+FONT_BOLD = font("jhbd")        # 微软正黑粗体：名单
 GLOW, CORE = (255, 190, 60), (255, 246, 215)
 
 
@@ -38,7 +38,7 @@ def encoder(out):
 
 
 def render(cfg):
-    base = Path(cfg.get("_base", HERE)); title = cfg.get("title", "山獅霸的多重宇宙")
+    base = Path(cfg.get("_base", HERE)); title = cfg.get("title", "山狮霸的多重宇宙")
     card_dur, title_dur = cfg.get("card_dur", 3.3), cfg.get("title_dur", 7.5)
     f_head = ImageFont.truetype(FONT_BOLD, 30); f_a = ImageFont.truetype(FONT_BOLD, 46); f_b = ImageFont.truetype(FONT_BOLD, 30)
     enc = encoder(base / cfg.get("out", "ending.mp4")); n_card = int(card_dur * FPS)

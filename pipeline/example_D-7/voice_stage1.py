@@ -1,4 +1,4 @@
-"""配音第一階段（Voice venv）：①阿禾參考音逐字稿 ②Breeze 任務 breeze_jobs.json ③edge-tts 台灣國語參考音 voice_ref_tw/ ④VoxCPM2 候選（繁轉簡）voice_cand/<id>_vx<k>.wav
+"""配音第一阶段（Voice venv）：①阿禾参考音逐字稿 ②Breeze 任务 breeze_jobs.json ③edge-tts 台湾国语参考音 voice_ref_tw/ ④VoxCPM2 候选（繁转简）voice_cand/<id>_vx<k>.wav
   C:/AI/Voice/venv/Scripts/python.exe voice_stage1.py [--n 6]"""
 import asyncio, json, subprocess, sys
 from pathlib import Path
@@ -11,7 +11,7 @@ asr = WhisperModel("large-v3", device="cuda", compute_type="float16", download_r
 refs = {}
 for sp, (p, t) in P.REFS.items():
     if t is None:
-        segs, _ = asr.transcribe(str(p), language="zh", beam_size=5, initial_prompt="以下是繁體中文的普通話。"); t = "".join(s.text for s in segs).strip()
+        segs, _ = asr.transcribe(str(p), language="zh", beam_size=5, initial_prompt="以下是繁体中文的普通话。"); t = "".join(s.text for s in segs).strip()
     refs[sp] = dict(ref_audio=str(p), ref_text=t); print(sp, t, flush=True)
 (HERE / "voice_refs.json").write_text(json.dumps(refs, ensure_ascii=False, indent=1), encoding="utf-8")
 del asr

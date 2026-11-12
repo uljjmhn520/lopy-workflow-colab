@@ -1,7 +1,7 @@
-"""手指放大表（〈向日葵之戰〉使用者 2026-11-04 抓到 3:50 手只有 4 根）：
-每鏡首幀用 YOLO pose 找手腕，沿「手肘→手腕」方向切出手部，拼成 out/review/fingers_XX.jpg，一隻一隻數。
---clips：改看 H3 成片（使用者 2026-11-04 抓到 1:55 第 6 根指頭：首幀是 5 根，H3 拍動作時才多長出來，只查首幀抓不到），每鏡取 25%／50%／75% 三格，只留看得清手指的大手。
-用法（Voice venv）：python finger_sheet.py [--clips] [鏡號 …]"""
+"""手指放大表（〈向日葵之战〉使用者 2026-11-04 抓到 3:50 手只有 4 根）：
+每镜首帧用 YOLO pose 找手腕，沿「手肘→手腕」方向切出手部，拼成 out/review/fingers_XX.jpg，一只一只数。
+--clips：改看 H3 成片（使用者 2026-11-04 抓到 1:55 第 6 根指头：首帧是 5 根，H3 拍动作时才多长出来，只查首帧抓不到），每镜取 25%／50%／75% 三格，只留看得清手指的大手。
+用法（Voice venv）：python finger_sheet.py [--clips] [镜号 …]"""
 import json
 import os
 import sys
@@ -55,7 +55,7 @@ for sid, img in (x for s_ in want for x in samples(s_)):
             e, w = person[el][:2], person[wr][:2]
             c = w + (w - e) * 0.35
             r = int(max(70, min(220, np.linalg.norm(w - e) * 0.7, shoulder * 0.55) if shoulder else 110))
-            if CLIPS and r < int(os.environ.get("FINGER_MIN_R", 75)):      # 手太小，觀眾也數不到
+            if CLIPS and r < int(os.environ.get("FINGER_MIN_R", 75)):      # 手太小，观众也数不到
                 continue
             x0, y0 = int(np.clip(c[0] - r, 0, W - 1)), int(np.clip(c[1] - r, 0, H - 1))
             x1, y1 = int(np.clip(c[0] + r, 1, W)), int(np.clip(c[1] + r, 1, H))
@@ -73,4 +73,4 @@ for k in range(0, len(crops), n):
         d.rectangle((x, y, x + 110, y + 28), fill="black")
         d.text((x + 4, y + 2), sid, fill="yellow", font=font)
     sheet.save(OUT / "review" / f"{'cfingers' if CLIPS else 'fingers'}_{k // n:02d}.jpg", quality=88)
-print(len(crops), "隻手；", (len(crops) + n - 1) // n, "張表")
+print(len(crops), "只手；", (len(crops) + n - 1) // n, "张表")

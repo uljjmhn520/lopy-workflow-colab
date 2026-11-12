@@ -1,21 +1,21 @@
-"""Seedance 2.5（Kie.ai）分鏡送件：吃 h3_shot.py 同一份分鏡 spec（官方六段格式 JSON），轉成 Seedance 提示詞送 Kie，做好就下載。
-2026-10-23 建立（原頻道規定）：**有台詞的鏡一定要給角色參考音；角色真的沒有參考音，才讓 2.5 自己生聲音。**
+"""Seedance 2.5（Kie.ai）分镜送件：吃 h3_shot.py 同一份分镜 spec（官方六段格式 JSON），转成 Seedance 提示词送 Kie，做好就下载。
+2026-10-23 建立（原频道规定）：**有台词的镜一定要给角色参考音；角色真的没有参考音，才让 2.5 自己生声音。**
 
-模式（自動判斷，不用自己選）：
-  有台詞＋spec 有 audio.voice_ref（或 audio.fixed）→ 參考模式：首幀當參考圖 1、角色參考音當參考音 1（只學音色、不念參考音的字）。
-      Kie 的參考模式不能和首幀模式混用 → 首幀不再釘成第 0 格，提示詞另外要求「照參考圖的構圖開場」。
-      原頻道實測（2026-10-23）：構圖與臉幾乎就是首幀；聲音仍由 2.5 重念，但音色被拉向參考音（像參考音 0.63，不給只有約 0.31）。
-  有台詞但沒有參考音 → 擋下來報錯。只有 spec 寫 "self_voice": true（＝這個角色沒有參考音）才改成首幀模式、聲音由 2.5 自己生。
-  沒有台詞 → 首幀模式（first_frame_url，構圖釘在首幀；不用參考音）。
-規格：720p；秒數取整數且 ≥ 4；直式 spec（size 寬<高）參考模式用 9:16、橫式用 16:9，首幀模式用 adaptive。
-費用：720p 約 63 點／秒（200 點 ≈ 1 美元）；submit 前先查 Kie 點數，不夠就不送。金鑰：環境變數 KIE_API_KEY（或 KIE_KEY_FILE＝金鑰文字檔路徑）。
+模式（自动判断，不用自己选）：
+  有台词＋spec 有 audio.voice_ref（或 audio.fixed）→ 参考模式：首帧当参考图 1、角色参考音当参考音 1（只学音色、不念参考音的字）。
+      Kie 的参考模式不能和首帧模式混用 → 首帧不再钉成第 0 格，提示词另外要求「照参考图的构图开场」。
+      原频道实测（2026-10-23）：构图与脸几乎就是首帧；声音仍由 2.5 重念，但音色被拉向参考音（像参考音 0.63，不给只有约 0.31）。
+  有台词但没有参考音 → 挡下来报错。只有 spec 写 "self_voice": true（＝这个角色没有参考音）才改成首帧模式、声音由 2.5 自己生。
+  没有台词 → 首帧模式（first_frame_url，构图钉在首帧；不用参考音）。
+规格：720p；秒数取整数且 ≥ 4；直式 spec（size 宽<高）参考模式用 9:16、横式用 16:9，首帧模式用 adaptive。
+费用：720p 约 63 点／秒（200 点 ≈ 1 美元）；submit 前先查 Kie 点数，不够就不送。金钥：环境变数 KIE_API_KEY（或 KIE_KEY_FILE＝金钥文字档路径）。
 
 用法：
-  python sd25_shot.py check  <spec.json ...>                 # 列出每鏡模式、秒數與總點數，不送件
-  python sd25_shot.py submit <spec.json ...> --out <資料夾>   # 送件（已送過的鏡跳過），紀錄寫 <資料夾>/tasks.json
-  python sd25_shot.py poll   --out <資料夾>                   # 每 20 秒查一次，做好下載成 <資料夾>/<鏡>.mp4
-  python sd25_shot.py show   <spec.json>                      # 印出這鏡實際送出的提示詞
-  鏡名＝spec 檔所在資料夾名（spec.json）或檔名（S04.json）。"""
+  python sd25_shot.py check  <spec.json ...>                 # 列出每镜模式、秒数与总点数，不送件
+  python sd25_shot.py submit <spec.json ...> --out <资料夹>   # 送件（已送过的镜跳过），纪录写 <资料夹>/tasks.json
+  python sd25_shot.py poll   --out <资料夹>                   # 每 20 秒查一次，做好下载成 <资料夹>/<镜>.mp4
+  python sd25_shot.py show   <spec.json>                      # 印出这镜实际送出的提示词
+  镜名＝spec 档所在资料夹名（spec.json）或档名（S04.json）。"""
 import json
 import math
 import os
@@ -31,14 +31,14 @@ import requests
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 KEY = os.environ.get("KIE_API_KEY") or (Path(os.environ["KIE_KEY_FILE"]).read_text(encoding="utf-8").strip()
                                          if os.environ.get("KIE_KEY_FILE") else "")
-UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128 Safari/537.36"   # Kie 會擋沒有瀏覽器 UA 的請求
+UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128 Safari/537.36"   # Kie 会挡没有浏览器 UA 的请求
 H = {"Authorization": f"Bearer {KEY}", "User-Agent": UA}
 
 
 def upload(p):
-    """上傳到 Kie 的暫存空間（約 24 小時後刪），回傳下載網址。"""
+    """上传到 Kie 的暂存空间（约 24 小时后删），回传下载网址。"""
     if not KEY:
-        raise SystemExit("sd25_shot: 先設環境變數 KIE_API_KEY（或 KIE_KEY_FILE＝金鑰文字檔路徑）")
+        raise SystemExit("sd25_shot: 先设环境变数 KIE_API_KEY（或 KIE_KEY_FILE＝金钥文字档路径）")
     with open(p, "rb") as f:
         r = requests.post("https://kieai.redpandaai.co/api/file-stream-upload", headers=H,
                           files={"file": (Path(p).name, f)}, data={"uploadPath": "sd25-shot", "fileName": Path(p).name},
@@ -117,7 +117,7 @@ def credit():
 
 
 def up(path, tag):
-    """Kie 上傳會把非 ASCII 檔名去掉、同名可能互蓋 → 複製成 <tag><副檔名> 再傳。"""
+    """Kie 上传会把非 ASCII 档名去掉、同名可能互盖 → 复制成 <tag><副档名> 再传。"""
     tmp = Path(tempfile.mkdtemp()) / f"{tag}{Path(path).suffix}"
     shutil.copy2(path, tmp)
     return upload(tmp)
@@ -131,12 +131,12 @@ def check(specs):
     total, bad = 0, []
     for p in specs:
         s = load(p); md = mode(s); sec = seconds(s); total += sec if md != "BLOCKED" else 0
-        print(f"{name_of(p):8s} {md:22s} {sec} 秒" + (f"  參考音 {ref_audio(s).name}" if md == "reference" else ""))
+        print(f"{name_of(p):8s} {md:22s} {sec} 秒" + (f"  参考音 {ref_audio(s).name}" if md == "reference" else ""))
         if md == "BLOCKED":
             bad.append(name_of(p))
-    print(f"合計 {total} 秒 ≈ {total * RATE} 點")
+    print(f"合计 {total} 秒 ≈ {total * RATE} 点")
     if bad:
-        print(f"⚠ 有台詞但沒有角色參考音：{bad} → spec 加 audio.voice_ref；角色真的沒有參考音才加 \"self_voice\": true")
+        print(f"⚠ 有台词但没有角色参考音：{bad} → spec 加 audio.voice_ref；角色真的没有参考音才加 \"self_voice\": true")
     return total, bad
 
 
@@ -147,10 +147,10 @@ def submit(specs, out):
     todo = [p for p in specs if not (tasks.get(name_of(p), {}).get("taskId") and tasks[name_of(p)].get("state") != "fail")]
     total, bad = check(todo)
     if bad:
-        raise SystemExit("有台詞的鏡沒有角色參考音，不送件（規則見本檔開頭）。")
+        raise SystemExit("有台词的镜没有角色参考音，不送件（规则见本档开头）。")
     c = credit()
     if c is None or c < total * RATE:
-        raise SystemExit(f"Kie 剩 {c} 點，這次需要約 {total * RATE} 點 → 先儲值")
+        raise SystemExit(f"Kie 剩 {c} 点，这次需要约 {total * RATE} 点 → 先储值")
     tasks.setdefault("_credit_before", c)
     for p in todo:
         s = load(p); sid = name_of(p); md = mode(s)
@@ -163,7 +163,7 @@ def submit(specs, out):
             inp.update(aspect_ratio="adaptive", first_frame_url=up(s["first_frame"], f"{sid}_first"))
         r = requests.post("https://api.kie.ai/api/v1/jobs/createTask", headers=H, json={"model": MODEL, "input": inp}, timeout=60).json()
         ok = r.get("code") == 200
-        print(sid, md, "送出" if ok else f"失敗 {r}", flush=True)
+        print(sid, md, "送出" if ok else f"失败 {r}", flush=True)
         tasks[sid] = ({"taskId": r["data"]["taskId"], "mode": md, "input": inp, "submitted": time.time()} if ok
                       else {"mode": md, "input": inp, "state": "fail", "failMsg": r})
         tf.write_text(json.dumps(tasks, ensure_ascii=False, indent=1), encoding="utf-8")
@@ -193,7 +193,7 @@ def poll(out):
         if pending:
             time.sleep(20)
     ok = [k for k, v in tasks.items() if not k.startswith("_") and v.get("state") == "success"]
-    print(f"完成 {len(ok)} 鏡；點數 {tasks.get('_credit_before')} → {tasks.get('_credit_after')}", flush=True)
+    print(f"完成 {len(ok)} 镜；点数 {tasks.get('_credit_before')} → {tasks.get('_credit_after')}", flush=True)
 
 
 if __name__ == "__main__":

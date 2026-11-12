@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 
 MODEL_CACHE = Path(os.environ.get("AI_ROOT", r"C:\AI")) / "Voice" / "models" / "whisper"  # AI_ROOT = install root (default C:\AI)
-DEFAULT_PROMPT = "繁體中文，教學、AI 影片製作、ComfyUI、MiniMax H3、Blender。"
+DEFAULT_PROMPT = "繁体中文，教学、AI 影片制作、ComfyUI、MiniMax H3、Blender。"
 
 
 def _add_cuda_dll_dirs():

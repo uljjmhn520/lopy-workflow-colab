@@ -1,9 +1,9 @@
-"""DJ 口白加停頓：Ming 念得一口氣到底，重點句（「這題，我不答」）後面要留白才有重量。
-在指定字後面插靜音，並把 out/voice/ming/dj_align.json 的時間一起往後推。原檔留 dj_<key>_orig.wav（之後重跑都從原檔算）。
-用法（Voice venv）：python dj_pause.py verdict 下毒=0.3 是誰=0.55 你贏=1.2
-⚠ 切點一律用 dj_tail_check.tail_end（句尾真正結束的地方）：〈Bravo 之戰〉v5 以前照對齊器的字尾切，字尾報早 0.1–0.3 秒，
-每句最後一個字被砍、尾巴被推到停頓後面，使用者聽出「DJ 講話的尾句都斷掉」（2026-11-08）。插完會自動跑句尾檢查。
-注意：插停頓會改變後面每個字的時間，DJ 有對嘴的鏡要在生成影片之前插。"""
+"""DJ 口白加停顿：Ming 念得一口气到底，重点句（「这题，我不答」）后面要留白才有重量。
+在指定字后面插静音，并把 out/voice/ming/dj_align.json 的时间一起往后推。原档留 dj_<key>_orig.wav（之后重跑都从原档算）。
+用法（Voice venv）：python dj_pause.py verdict 下毒=0.3 是谁=0.55 你赢=1.2
+⚠ 切点一律用 dj_tail_check.tail_end（句尾真正结束的地方）：〈Bravo 之战〉v5 以前照对齐器的字尾切，字尾报早 0.1–0.3 秒，
+每句最后一个字被砍、尾巴被推到停顿后面，使用者听出「DJ 讲话的尾句都断掉」（2026-11-08）。插完会自动跑句尾检查。
+注意：插停顿会改变后面每个字的时间，DJ 有对嘴的镜要在生成影片之前插。"""
 import json
 import sys
 import shutil
@@ -40,7 +40,7 @@ for phrase, sec in AFTER.items():
 cuts.sort()
 parts, last, new, shift = [], 0, [], 0.0
 for t, sec, w in cuts:
-    # 切在句尾真正結束的地方（v6 修：對齊器的字尾常早 0.1–0.3 秒，照它切會砍掉最後一個字、尾巴被推到停頓後面）
+    # 切在句尾真正结束的地方（v6 修：对齐器的字尾常早 0.1–0.3 秒，照它切会砍掉最后一个字、尾巴被推到停顿后面）
     c = int(tail_end(x, sr, t, limit=min(.5, sec - .08)) * sr)
     parts += [x[last:c], np.zeros((int(sec * sr), x.shape[1]), "float32")]; last = c
     print(w, round(t, 2), "+", sec)
@@ -51,6 +51,6 @@ for w in al[KEY]:
     new.append([w[0], round(w[1] + add, 2), round(w[2] + add, 2)])
 al[KEY] = new
 al_p.write_text(json.dumps(al, ensure_ascii=False, indent=0), encoding="utf-8")
-print("長度", round(len(x) / sr, 2), "→", round(sum(len(p) for p in parts) / sr, 2))
+print("长度", round(len(x) / sr, 2), "→", round(sum(len(p) for p in parts) / sr, 2))
 r = hard_cuts(np.concatenate(parts).mean(1), sr)
-print("句尾檢查：", "OK" if not r else r)
+print("句尾检查：", "OK" if not r else r)

@@ -1,17 +1,17 @@
-"""全本地多鏡短片範本：讀 film.json，從角色定妝照一路做到成片＋自審。做新片只改 film.json，這支程式不用改。
-H3 venv 執行（ComfyUI 要先開：同一個 cmd 視窗 call configs\\profile.cmd → C:\\AI\\tools\\start_comfy.cmd）：
-  C:\\AI\\H3\\venv\\Scripts\\python.exe make_film.py [stage ...] [--film 別的設定.json]
-stage（不給＝全部依序）：chars masters frames voices h3 amb edl music ending cut review
-每一步的輸出都在 out/，已存在的檔案會跳過，所以可以中斷後續跑、或刪掉某個檔重做：
-  - 重生某一鏡首幀：刪 out/first/<鏡>.png，在 film.json 的 seeds 加 "frame_<鏡>": 新 seed，再跑 frames
-  - 重拍某一鏡 H3：刪 out/h3/<鏡>/clip.mp4（或加 "h3_<鏡>": 新 seed），再跑 h3（環境變數 ONLY="S2 S5" 只跑指定鏡）
-  - 改了台詞：voice_mode h3_ref（預設）刪 out/h3/<鏡>/clip.mp4 再跑 h3；fixed 刪 out/voice/bv 裡那句的檔（或整個 out/voice/bv），再跑 voices
-台詞聲音（2026-10-23 起預設 voice_mode "h3_ref"）：Breeze 設計角色參考音 → H3 拿參考音自己念台詞（嘴型與聲音一起生成）→ h3 階段結尾
-分離人聲＋聽寫比對原文。"fixed"＝舊做法（BreezyVoice 配音當固定音軌）。film.json 全片設 voice_mode，單句可在 line 裡設 "voice_mode" 覆寫。
-2026-10-24 本範本從頭實測（RTX 5090，〈被狗吃掉的作業〉7 鏡、action 照官方結構寫）：6 句台詞 H3 全部念對、自審五遍通過、影音同為 39.000 秒、全程約 27 分鐘。
+"""全本地多镜短片范本：读 film.json，从角色定妆照一路做到成片＋自审。做新片只改 film.json，这支程式不用改。
+H3 venv 执行（ComfyUI 要先开：同一个 cmd 视窗 call configs\\profile.cmd → C:\\AI\\tools\\start_comfy.cmd）：
+  C:\\AI\\H3\\venv\\Scripts\\python.exe make_film.py [stage ...] [--film 别的设定.json]
+stage（不给＝全部依序）：chars masters frames voices h3 amb edl music ending cut review
+每一步的输出都在 out/，已存在的档案会跳过，所以可以中断后续跑、或删掉某个档重做：
+  - 重生某一镜首帧：删 out/first/<镜>.png，在 film.json 的 seeds 加 "frame_<镜>": 新 seed，再跑 frames
+  - 重拍某一镜 H3：删 out/h3/<镜>/clip.mp4（或加 "h3_<镜>": 新 seed），再跑 h3（环境变数 ONLY="S2 S5" 只跑指定镜）
+  - 改了台词：voice_mode h3_ref（预设）删 out/h3/<镜>/clip.mp4 再跑 h3；fixed 删 out/voice/bv 里那句的档（或整个 out/voice/bv），再跑 voices
+台词声音（2026-10-23 起预设 voice_mode "h3_ref"）：Breeze 设计角色参考音 → H3 拿参考音自己念台词（嘴型与声音一起生成）→ h3 阶段结尾
+分离人声＋听写比对原文。"fixed"＝旧做法（BreezyVoice 配音当固定音轨）。film.json 全片设 voice_mode，单句可在 line 里设 "voice_mode" 覆写。
+2026-10-24 本范本从头实测（RTX 5090，〈被狗吃掉的作业〉7 镜、action 照官方结构写）：6 句台词 H3 全部念对、自审五遍通过、影音同为 39.000 秒、全程约 27 分钟。
   - 改了剪接（cut_in、tail…）：跑 edl cut review 即可
-人工關卡：frames 之後看 out/first/_sheet.jpg；h3 之後看 out/review/clips_*.jpg；review 之後一定要看成片。
-2026-10-07 由「一個沒看過本專案的 agent 照 repo 做出〈被狗吃掉的作業〉」時寫的 film.py／post.py 整理而成。"""
+人工关卡：frames 之后看 out/first/_sheet.jpg；h3 之后看 out/review/clips_*.jpg；review 之后一定要看成片。
+2026-10-07 由「一个没看过本专案的 agent 照 repo 做出〈被狗吃掉的作业〉」时写的 film.py／post.py 整理而成。"""
 import json
 import os
 import re
@@ -22,7 +22,7 @@ import urllib.request
 import wave
 from pathlib import Path
 
-for _s in (sys.stdout, sys.stderr):                 # 中文輸出在非 UTF-8 主控台不變亂碼
+for _s in (sys.stdout, sys.stderr):                 # 中文输出在非 UTF-8 主控台不变乱码
     try:
         _s.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
@@ -48,7 +48,7 @@ UPSCALE = os.environ.get("UPSCALE", "rtxvsr" if os.name == "nt" else "lanczos") 
 
 
 def local_h3_ok():
-    """本機能不能跑 H3：NVIDIA 顯卡 ≥15GB 且記憶體 ≥30GB（三份硬體版 repo 的最低配置）。"""
+    """本机能不能跑 H3：NVIDIA 显卡 ≥15GB 且记忆体 ≥30GB（三份硬体版 repo 的最低配置）。"""
     try:
         vram = int(subprocess.run(["nvidia-smi", "--query-gpu=memory.total", "--format=csv,noheader,nounits"],
                                   capture_output=True, text=True, timeout=20).stdout.split()[0]) / 1024
@@ -67,40 +67,40 @@ def local_h3_ok():
     return vram >= 15 and ram >= 30
 
 
-# H3 在哪跑：local＝本機 ComfyUI；colab＝整批送到 Google Colab G4（cloud/colab_h3.py）；
-# both＝本機＋Colab 一起跑（共用佇列，cloud/hybrid_h3.py，⚠ 尚未實測）。不設就自動判斷（local／colab）。
+# H3 在哪跑：local＝本机 ComfyUI；colab＝整批送到 Google Colab G4（cloud/colab_h3.py）；
+# both＝本机＋Colab 一起跑（共用伫列，cloud/hybrid_h3.py，⚠ 尚未实测）。不设就自动判断（local／colab）。
 H3_BACKEND = os.environ.get("H3_BACKEND") or ("local" if local_h3_ok() else "colab")
 
 
 def render_h3(dirs):
-    """dirs 裡每個資料夾都有 spec.json；成品寫回同一個資料夾（clip.mp4、meta.json…）。"""
+    """dirs 里每个资料夹都有 spec.json；成品写回同一个资料夹（clip.mp4、meta.json…）。"""
     if not dirs:
         return
     if H3_BACKEND == "both":
         sys.path.insert(0, str(REPO / "cloud")); from hybrid_h3 import run_hybrid   # noqa: E402
         miss = run_hybrid(dirs, PYH3, T)
         if miss:
-            sys.exit(f"[h3] 這些鏡頭沒做出來：{' '.join(d.name for d in miss)}")
+            sys.exit(f"[h3] 这些镜头没做出来：{' '.join(d.name for d in miss)}")
     elif H3_BACKEND == "colab":
-        print(f"[h3] {len(dirs)} 鏡送到 Colab（cloud/colab_h3.py batch）", flush=True)
+        print(f"[h3] {len(dirs)} 镜送到 Colab（cloud/colab_h3.py batch）", flush=True)
         run([sys.executable, REPO / "cloud" / "colab_h3.py", "batch"] + [d / "spec.json" for d in dirs])
-    elif os.environ.get("H3_PARALLEL") == "2":           # 全雲端模式（colab_h3.py film 設定）：H3 這一步改用 2 個 ComfyUI 錯開跑
+    elif os.environ.get("H3_PARALLEL") == "2":           # 全云端模式（colab_h3.py film 设定）：H3 这一步改用 2 个 ComfyUI 错开跑
         run([PYH3, REPO / "cloud" / "vm" / "parallel_h3.py"] + dirs)
     else:
         for d in dirs:
             run([PYH3, T / "h3_shot.py", d / "spec.json", "--out", d])
 CHARS, SHOTS = CFG["chars"], CFG["shots"]
-LINES = [(s["id"], s["line"]) for s in SHOTS if s.get("line")]      # (鏡, {who, text, tts?, at, voice_mode?})
-VOICE_MODE = CFG.get("voice_mode", "h3_ref")                        # h3_ref＝H3＋角色參考音自己念（預設）｜fixed＝BreezyVoice 固定音軌
+LINES = [(s["id"], s["line"]) for s in SHOTS if s.get("line")]      # (镜, {who, text, tts?, at, voice_mode?})
+VOICE_MODE = CFG.get("voice_mode", "h3_ref")                        # h3_ref＝H3＋角色参考音自己念（预设）｜fixed＝BreezyVoice 固定音轨
 
 
 def h3_says(ln):
-    """這句台詞是不是讓 H3 自己念（h3_ref）。"""
+    """这句台词是不是让 H3 自己念（h3_ref）。"""
     return ln.get("voice_mode", VOICE_MODE) == "h3_ref"
 
 
 def est_line_secs(ln):
-    """H3 自己念時事先估台詞秒數（約每秒 4 字，至少 1.2 秒）；實際起訖在 h3 階段結尾聽寫抓。"""
+    """H3 自己念时事先估台词秒数（约每秒 4 字，至少 1.2 秒）；实际起讫在 h3 阶段结尾听写抓。"""
     return max(1.2, len(re.findall(r"[一-鿿A-Za-z0-9]", ln["text"])) / 4.0)
 MIX = CFG.get("mix", {})
 TIMING = OUT / "timing.json"
@@ -170,10 +170,10 @@ def line_index(sid):
     return next(i for i, (s, _) in enumerate(LINES) if s == sid)
 
 
-# ------------------------------------------------------------------------------------------------ 圖
+# ------------------------------------------------------------------------------------------------ 图
 @stage("chars")
 def chars():
-    """角色定妝照：單張、灰底、正面半身（docs/07 §1）。不滿意就在 seeds 加 char_<角色> 換 seed、刪檔重跑。"""
+    """角色定妆照：单张、灰底、正面半身（docs/07 §1）。不满意就在 seeds 加 char_<角色> 换 seed、删档重跑。"""
     for k, c in CHARS.items():
         dst = OUT / "chars" / f"{k}.png"
         if dst.exists():
@@ -188,7 +188,7 @@ def chars():
 
 @stage("masters")
 def masters():
-    """場景母版（空景 2K），再依每鏡的 scene 框裁成該鏡景別，當首幀的場景參考（docs/07 §4）。"""
+    """场景母版（空景 2K），再依每镜的 scene 框裁成该镜景别，当首帧的场景参考（docs/07 §4）。"""
     from PIL import Image
     for k, p in CFG.get("masters", {}).items():
         dst = OUT / "masters" / f"{k}.png"
@@ -205,7 +205,7 @@ def masters():
 
 @stage("frames")
 def frames():
-    """首幀：Qwen-Image-Edit 附「角色定妝照（<image1>…）＋場景裁切（最後一張）」。每鏡都照抄角色完整外觀描述，否則會掉眼鏡、換髮型。"""
+    """首帧：Qwen-Image-Edit 附「角色定妆照（<image1>…）＋场景裁切（最后一张）」。每镜都照抄角色完整外观描述，否则会掉眼镜、换发型。"""
     for s in SHOTS:
         dst = OUT / "first" / f"{s['id']}.png"
         if dst.exists():
@@ -223,7 +223,7 @@ def frames():
         run(cmd)
         newest(OUT / "first").rename(dst)
     sheet([OUT / "first" / f"{s['id']}.png" for s in SHOTS], OUT / "first" / "_sheet.jpg")
-    print("→ 人工檢查 out/first/_sheet.jpg：臉、服裝、多手多腳、背景有沒有字、窗戶方向", flush=True)
+    print("→ 人工检查 out/first/_sheet.jpg：脸、服装、多手多脚、背景有没有字、窗户方向", flush=True)
 
 
 def sheet(files, dst, cols=3):
@@ -239,27 +239,27 @@ def sheet(files, dst, cols=3):
     Path(dst).parent.mkdir(parents=True, exist_ok=True); im.save(dst, quality=85)
 
 
-# ------------------------------------------------------------------------------------------------ 聲音
+# ------------------------------------------------------------------------------------------------ 声音
 def load_picks():
-    """out/voice_picks.json：每句台詞實際用的聲音檔（BreezyVoice 挑的，或 H3 成片分離出的人聲）。"""
+    """out/voice_picks.json：每句台词实际用的声音档（BreezyVoice 挑的，或 H3 成片分离出的人声）。"""
     p = OUT / "voice_picks.json"
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
 
 
 @stage("voices")
 def voices():
-    """Breeze 設計角色聲音（一次，h3_ref 拿它當 H3 的參考音）。fixed 的句子再做：edge-tts 台灣國語答案卷 → BreezyVoice 每句 8 候選 →
-    自動挑（聽寫拼音聲調全對＋腔調分數，已去頭尾靜音）。"""
+    """Breeze 设计角色声音（一次，h3_ref 拿它当 H3 的参考音）。fixed 的句子再做：edge-tts 台湾国语答案卷 → BreezyVoice 每句 8 候选 →
+    自动挑（听写拼音声调全对＋腔调分数，已去头尾静音）。"""
     free_comfy()
     vd = OUT / "voice"; vd.mkdir(exist_ok=True)
     jobs = [dict(name=f"ref_{k}", text=c["voice_sample"], instruction=c["voice_design"], seed=seed("voice_" + k, 7)) for k, c in CHARS.items()]
     fixed = [(i, sid, ln) for i, (sid, ln) in enumerate(LINES) if not h3_says(ln)]
-    if not fixed:                                    # 全部 h3_ref：只要角色參考音
+    if not fixed:                                    # 全部 h3_ref：只要角色参考音
         (OUT / "breeze.json").write_text(json.dumps(dict(out_dir="voice", jobs=jobs), ensure_ascii=False, indent=1), encoding="utf-8")
         run([PYB, T / "breeze_batch.py", "breeze.json"])
-        print("[voices] voice_mode h3_ref：角色參考音在 out/voice/ref_<角色>.wav，台詞由 H3 在 h3 階段自己念", flush=True)
+        print("[voices] voice_mode h3_ref：角色参考音在 out/voice/ref_<角色>.wav，台词由 H3 在 h3 阶段自己念", flush=True)
         return
-    for i, sid, ln in fixed:                         # 答案卷：只拿來比腔調，不進成片
+    for i, sid, ln in fixed:                         # 答案卷：只拿来比腔调，不进成片
         w = vd / f"tw_{i}.wav"
         if w.exists():
             continue
@@ -268,7 +268,7 @@ def voices():
                  "--out", mp3], check=False)
         if r.returncode == 0 and mp3.exists():
             run(["ffmpeg", "-y", "-loglevel", "error", "-i", mp3, "-ar", "48000", "-ac", "1", w])
-        else:                                        # 沒網路：改用 Breeze 產生答案卷（可靠度較低）
+        else:                                        # 没网路：改用 Breeze 产生答案卷（可靠度较低）
             jobs.append(dict(name=f"tw_{i}", text=ln["text"], instruction="A clear, neutral standard Taiwanese Mandarin news-reading voice, calm, precise tones.", seed=11))
     (OUT / "breeze.json").write_text(json.dumps(dict(out_dir="voice", jobs=jobs), ensure_ascii=False, indent=1), encoding="utf-8")
     run([PYB, T / "breeze_batch.py", "breeze.json"])
@@ -282,15 +282,15 @@ def voices():
     for i, sid, ln in fixed:
         p = bp[f"line{i}"]; best = next(c for c in p["cands"] if c["file"] == p["pick"])
         if p["needs_review"]:
-            bad.append(f"{sid}「{ln['text']}」聽成「{best['asr']}」")
+            bad.append(f"{sid}「{ln['text']}」听成「{best['asr']}」")
         picks[str(i)] = dict(shot=sid, who=ln["who"], text=ln["text"], file=str(vd / "bv" / f"line{i}.wav"), heard=best["asr"],
                              tw_score=best.get("tw_score"), needs_review=p["needs_review"], source="breezyvoice")
         print("pick", sid, ln["text"], "→", p["pick"], best["asr"], best.get("tw_score"), flush=True)
     (OUT / "voice_picks.json").write_text(json.dumps(picks, ensure_ascii=False, indent=1), encoding="utf-8")
     if bad and os.environ.get("ALLOW_REVIEW") != "1":
-        raise SystemExit("這幾句 8 個候選聽寫都不對：" + "；".join(bad) +
-                         "\n請在 film.json 該句加 \"tts\"（念不準的字標注音，例：假[:ㄐㄧㄚ4]）或換說法，刪掉 out/voice/bv 再跑 voices；"
-                         "確定只是 ASR 聽錯（例如單字喊叫）就用 ALLOW_REVIEW=1 繼續。")
+        raise SystemExit("这几句 8 个候选听写都不对：" + "；".join(bad) +
+                         "\n请在 film.json 该句加 \"tts\"（念不准的字标注音，例：假[:ㄐㄧㄚ4]）或换说法，删掉 out/voice/bv 再跑 voices；"
+                         "确定只是 ASR 听错（例如单字喊叫）就用 ALLOW_REVIEW=1 继续。")
 
 
 # ------------------------------------------------------------------------------------------------ H3
@@ -298,7 +298,7 @@ def shot_secs(s, picks):
     d = s["dur"]
     if s.get("line"):
         ln = s["line"]
-        if h3_says(ln):                              # H3 自己念：用估計秒數＋1.2 秒餘裕（H3 偶爾晚開口）
+        if h3_says(ln):                              # H3 自己念：用估计秒数＋1.2 秒余裕（H3 偶尔晚开口）
             d = max(d, ln["at"] + est_line_secs(ln) + 1.2)
         else:
             d = max(d, ln["at"] + dur(picks[str(line_index(s["id"]))]["file"]) + 0.8)
@@ -316,8 +316,8 @@ def h3_spec(s, secs, dialogue):
 
 @stage("h3")
 def h3():
-    """每鏡 H3（DMAD 4 步、只給首幀）。有台詞：h3_ref＝給角色參考音、H3 自己念；fixed＝放 BreezyVoice 配音當固定音軌。
-    沒台詞的鏡頭一律給靜音固定音軌（否則角色會自己嘟囔）。h3_ref 的鏡頭跑完後 harvest_lines() 抓出台詞。"""
+    """每镜 H3（DMAD 4 步、只给首帧）。有台词：h3_ref＝给角色参考音、H3 自己念；fixed＝放 BreezyVoice 配音当固定音轨。
+    没台词的镜头一律给静音固定音轨（否则角色会自己嘟囔）。h3_ref 的镜头跑完后 harvest_lines() 抓出台词。"""
     picks = load_picks()
     only = os.environ.get("ONLY", "").split(); todo = []
     for s in SHOTS:
@@ -352,8 +352,8 @@ def h3():
 
 
 def harvest_lines():
-    """h3_ref 的台詞：H3 成片音軌 → BS-RoFormer 取人聲 → 聽寫（找起訖、比對原文）→ 存 out/voice/h3/line<i>.wav，寫進 voice_picks.json。
-    H3 會改用詞（例：二十四號→二十四日）、偶爾晚開口；聽寫和原文差太多就停下來，換 seed（seeds 加 h3_<鏡>）重拍。"""
+    """h3_ref 的台词：H3 成片音轨 → BS-RoFormer 取人声 → 听写（找起讫、比对原文）→ 存 out/voice/h3/line<i>.wav，写进 voice_picks.json。
+    H3 会改用词（例：二十四号→二十四日）、偶尔晚开口；听写和原文差太多就停下来，换 seed（seeds 加 h3_<镜>）重拍。"""
     import difflib
     picks, bad = load_picks(), []
     hd = OUT / "voice" / "h3"; hd.mkdir(parents=True, exist_ok=True)
@@ -364,7 +364,7 @@ def harvest_lines():
             continue
         dst = hd / f"line{i}.wav"; p = picks.get(str(i), {})
         if dst.exists() and p.get("source") == "h3" and dst.stat().st_mtime >= clip.stat().st_mtime:
-            continue                                 # 已抓過、而且鏡頭沒重拍
+            continue                                 # 已抓过、而且镜头没重拍
         wav = hd / f"{sid}_mix.wav"
         run(["ffmpeg", "-y", "-loglevel", "error", "-i", clip, "-vn", "-ac", "2", "-ar", "44100", wav])
         for f in hd.glob(f"{sid}_mix_(*"):
@@ -381,15 +381,15 @@ def harvest_lines():
         score = difflib.SequenceMatcher(None, norm(ln["text"]), norm(heard)).ratio()
         review_ = score < 0.7
         if review_:
-            bad.append(f"{sid}「{ln['text']}」聽成「{heard}」")
+            bad.append(f"{sid}「{ln['text']}」听成「{heard}」")
         picks[str(i)] = dict(shot=sid, who=ln["who"], text=ln["text"], file=str(dst), heard=heard, at=round(a, 3),
                              match=round(score, 2), needs_review=review_, source="h3")
         print(f"line {sid}: H3 念「{heard}」（相似 {score:.2f}，{a:.2f}–{b:.2f} 秒）", flush=True)
     (OUT / "voice_picks.json").write_text(json.dumps(picks, ensure_ascii=False, indent=1), encoding="utf-8")
     if bad and os.environ.get("ALLOW_REVIEW") != "1":
-        raise SystemExit("H3 念的台詞和原文差太多：" + "；".join(bad) +
-                         "\n在 film.json 的 seeds 加 \"h3_<鏡>\": 新數字、刪 out/h3/<鏡>/clip.mp4，再跑 ONLY=<鏡> h3；抽 2–3 次都不對就在該句 line 加 "
-                         "\"voice_mode\": \"fixed\"（改用 BreezyVoice 固定音軌，先跑 voices）。確定只是聽寫聽錯（同音字）就用 ALLOW_REVIEW=1 繼續。")
+        raise SystemExit("H3 念的台词和原文差太多：" + "；".join(bad) +
+                         "\n在 film.json 的 seeds 加 \"h3_<镜>\": 新数字、删 out/h3/<镜>/clip.mp4，再跑 ONLY=<镜> h3；抽 2–3 次都不对就在该句 line 加 "
+                         "\"voice_mode\": \"fixed\"（改用 BreezyVoice 固定音轨，先跑 voices）。确定只是听写听错（同音字）就用 ALLOW_REVIEW=1 继续。")
 
 
 def sheet_clips():
@@ -409,12 +409,12 @@ def sheet_clips():
         for i, t in enumerate(tiles):
             im.paste(t, (448 * i, 0))
         im.save(rv / f"clips_{s['id']}.jpg", quality=82)
-    print("→ 人工檢查 out/review/clips_*.jpg：換臉、多出人、多手多腳、鏡頭漂移、背景同學亂動", flush=True)
+    print("→ 人工检查 out/review/clips_*.jpg：换脸、多出人、多手多脚、镜头漂移、背景同学乱动", flush=True)
 
 
 @stage("amb")
 def amb():
-    """有動作音效的鏡頭（amb: true）：用同一張首幀另拍一支「H3 原生音效」版，聽寫確認沒有人聲後，只取它的音軌當環境音。"""
+    """有动作音效的镜头（amb: true）：用同一张首帧另拍一支「H3 原生音效」版，听写确认没有人声后，只取它的音轨当环境音。"""
     res = {}; todo = []
     picks = load_picks()
     for s in SHOTS:
@@ -423,7 +423,7 @@ def amb():
         od = OUT / "h3" / f"{s['id']}_amb"; od.mkdir(parents=True, exist_ok=True)
         if not (od / "clip.mp4").exists():
             spec = h3_spec(s, shot_secs(s, picks), [])
-            spec["seed"] = int(s.get("amb_seed", spec["seed"]))      # 不寫 audio 欄位＝H3 原生音效
+            spec["seed"] = int(s.get("amb_seed", spec["seed"]))      # 不写 audio 栏位＝H3 原生音效
             (od / "spec.json").write_text(json.dumps(spec, ensure_ascii=False, indent=1), encoding="utf-8")
             todo.append(od)
     render_h3(todo)
@@ -435,14 +435,14 @@ def amb():
         heard = (od / "stt" / "transcript.txt").read_text(encoding="utf-8").strip() if (od / "stt" / "transcript.txt").exists() else ""
         speech = len(re.findall(r"[\u4e00-\u9fff]", heard))
         if speech <= 1:
-            res[s["id"]] = str(od / "clip.mp4"); print(f"amb {s['id']}: OK（聽寫沒有人聲）", flush=True)
+            res[s["id"]] = str(od / "clip.mp4"); print(f"amb {s['id']}: OK（听写没有人声）", flush=True)
         else:
-            print(f"amb {s['id']}: 有人聲「{heard}」→ 不用；換 amb_seed 再跑 amb，或改用 sfx/ 音效", flush=True)
+            print(f"amb {s['id']}: 有人声「{heard}」→ 不用；换 amb_seed 再跑 amb，或改用 sfx/ 音效", flush=True)
     (OUT / "post").mkdir(exist_ok=True)
     (OUT / "post" / "amb.json").write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
-# ------------------------------------------------------------------------------------------------ 剪接、配樂、片尾、成片
+# ------------------------------------------------------------------------------------------------ 剪接、配乐、片尾、成片
 def ending_secs():
     e = CFG.get("ending")
     return len(e["cards"]) * e.get("card_dur", 3.3) + e.get("title_dur", 7.5) if e else 0.0
@@ -450,14 +450,14 @@ def ending_secs():
 
 @stage("edl")
 def edl():
-    """時間軸：依配音長度與 cut_in／cut_out／tail 算每鏡在成片中的位置，寫 out/post/edl.json（cut、review 都讀它）。
-    cut_in＝裁掉鏡頭開頭幾秒（H3 常晚開口）；cut_out＝"full" 用到鏡尾，不寫＝台詞結束＋tail 秒（反應停頓）。
-    H3 自己念的台詞（source h3）用聽寫抓到的實際開口時間、不提前（嘴型本來就對齊）；BreezyVoice 的照 line.at 並提前 say_lead 秒。"""
+    """时间轴：依配音长度与 cut_in／cut_out／tail 算每镜在成片中的位置，写 out/post/edl.json（cut、review 都读它）。
+    cut_in＝裁掉镜头开头几秒（H3 常晚开口）；cut_out＝"full" 用到镜尾，不写＝台词结束＋tail 秒（反应停顿）。
+    H3 自己念的台词（source h3）用听写抓到的实际开口时间、不提前（嘴型本来就对齐）；BreezyVoice 的照 line.at 并提前 say_lead 秒。"""
     picks = load_picks()
     amb_files = json.loads((OUT / "post" / "amb.json").read_text(encoding="utf-8")) if (OUT / "post" / "amb.json").exists() else {}
     t, rows = 0.0, []
     for s in SHOTS:
-        # 修剪點一律對齊 1/24 秒：cut 階段每段用 -frames:v 取整數格，沒對齊的話每鏡多／少零點幾格、累積起來畫面會落後聲音
+        # 修剪点一律对齐 1/24 秒：cut 阶段每段用 -frames:v 取整数格，没对齐的话每镜多／少零点几格、累积起来画面会落后声音
         cd = dur(OUT / "h3" / s["id"] / "clip.mp4"); a = round(float(s.get("cut_in", 0.0)) * FPS) / FPS; b = s.get("cut_out"); lines = []
         if s.get("line"):
             i = line_index(s["id"]); ln = s["line"]; p = picks[str(i)]; d = dur(p["file"])
@@ -484,12 +484,12 @@ def load(p):
 
 @stage("music")
 def music():
-    """配樂：Music 3 純器樂多 seed → BS-RoFormer 分離 → 挑人聲殘留最少、長度夠的那首的純器樂軌。"""
+    """配乐：Music 3 纯器乐多 seed → BS-RoFormer 分离 → 挑人声残留最少、长度够的那首的纯器乐轨。"""
     import numpy as np
     e = json.loads((OUT / "post" / "edl.json").read_text(encoding="utf-8")); secs = int(e["total"] + 4)
     m = CFG["music"]; md = OUT / "music"; md.mkdir(exist_ok=True)
     (md / "cap.txt").write_text(m["caption"], encoding="utf-8")
-    (md / "lyr.txt").write_text("[Intro]\n" + "[Instrumental]\n" * 14 + "[Outro]\n[Instrumental]\n", encoding="utf-8")   # 少於 14 個會太短；加 Verse 會冒人聲
+    (md / "lyr.txt").write_text("[Intro]\n" + "[Instrumental]\n" * 14 + "[Outro]\n[Instrumental]\n", encoding="utf-8")   # 少于 14 个会太短；加 Verse 会冒人声
     for sd_ in m.get("seeds", [7, 23, 51]):
         sd = md / f"s{sd_}"; sd.mkdir(exist_ok=True)
         if not list(sd.glob("*.flac")):
@@ -503,24 +503,24 @@ def music():
                  "--output_dir", sd, "--output_format", "WAV"])
         voc = load(next(sd.glob("*Vocals*.wav"))); ins = load(next(sd.glob("*Instrumental*.wav")))
         ratio = float(np.sqrt((voc ** 2).mean()) / (np.sqrt((ins ** 2).mean()) + 1e-9)); d = len(ins) / SR
-        print(f"music s{sd_}: 人聲殘留 {ratio:.4f}，{d:.1f} 秒", flush=True)
+        print(f"music s{sd_}: 人声残留 {ratio:.4f}，{d:.1f} 秒", flush=True)
         if d >= e["total"] and (best is None or ratio < best[0]):
             best = (ratio, next(sd.glob("*Instrumental*.wav")))
     if best is None:
-        raise SystemExit("沒有一首配樂夠長：把 music.seeds 換掉再跑 music")
+        raise SystemExit("没有一首配乐够长：把 music.seeds 换掉再跑 music")
     (OUT / "post" / "music_pick.json").write_text(json.dumps(dict(file=str(best[1]), vocal_ratio=best[0]), ensure_ascii=False), encoding="utf-8")
 
 
 @stage("ending")
 def ending():
-    """片尾：特寫靜幀＋AI 工具名單＋片名（templates/ending）。MiniMax Music3 授權要求標示、公開內容要標示 AI 生成。"""
+    """片尾：特写静帧＋AI 工具名单＋片名（templates/ending）。MiniMax Music3 授权要求标示、公开内容要标示 AI 生成。"""
     e = CFG.get("ending")
     if not e:
         return
     from PIL import Image
     ed = OUT / "ending"; (ed / "frames").mkdir(parents=True, exist_ok=True)
     cards = []
-    up_name = {"flashvsr": "FlashVSR", "lanczos": "lanczos"}.get(UPSCALE)        # 片尾名單照實際做法寫（2026-10-10 新 agent 測試指出）
+    up_name = {"flashvsr": "FlashVSR", "lanczos": "lanczos"}.get(UPSCALE)        # 片尾名单照实际做法写（2026-10-10 新 agent 测试指出）
     for i, tools in enumerate(e["cards"]):
         sid = e["closeups"][i % len(e["closeups"])]
         Image.open(OUT / "first" / f"{sid}.png").convert("RGB").save(ed / "frames" / f"close{i + 1}.png")
@@ -528,9 +528,9 @@ def ending():
             tools = [[t[0].replace("RTX VSR", up_name), t[1]] for t in tools]
         cards.append(dict(image=f"frames/close{i + 1}.png", tools=tools))
     header = e.get("header", "本片使用的 AI 工具")
-    if "本機" in header and (os.name != "nt" or H3_BACKEND in ("colab", "both")):
-        header = "本片使用的 AI 工具（" + ("在 Google Colab 執行" if os.name != "nt" else
-                                       "影片在本機與 Google Colab 生成" if H3_BACKEND == "both" else "影片在 Google Colab 生成") + "）"
+    if "本机" in header and (os.name != "nt" or H3_BACKEND in ("colab", "both")):
+        header = "本片使用的 AI 工具（" + ("在 Google Colab 执行" if os.name != "nt" else
+                                       "影片在本机与 Google Colab 生成" if H3_BACKEND == "both" else "影片在 Google Colab 生成") + "）"
     cfg = {"_base": str(ed), "title": e.get("title", CFG["title"]), "header": header, "card_dur": e.get("card_dur", 3.3),
            "title_dur": e.get("title_dur", 7.5), "out": "ending.mp4", "cards": cards}
     (ed / "config.json").write_text(json.dumps(cfg, ensure_ascii=False, indent=1), encoding="utf-8")
@@ -543,15 +543,15 @@ def ass_time(t):
 
 @stage("cut")
 def cut():
-    """RTX VSR 放大 → 依 edl 剪接 → 混音（台詞提前 say_lead 秒、配樂台詞期間壓低）→ 響度 → 1080p 燒字幕 → 手機版。"""
+    """RTX VSR 放大 → 依 edl 剪接 → 混音（台词提前 say_lead 秒、配乐台词期间压低）→ 响度 → 1080p 烧字幕 → 手机版。"""
     import numpy as np
     e = json.loads((OUT / "post" / "edl.json").read_text(encoding="utf-8")); post = OUT / "post"
     vsr = post / "vsr"; vsr.mkdir(exist_ok=True); seg = post / "seg"; seg.mkdir(exist_ok=True); parts = []
     for r in e["shots"]:
         src = OUT / "h3" / r["id"] / "clip.mp4"; v = vsr / f"{r['id']}.mp4"
         if v.exists() and v.stat().st_mtime < src.stat().st_mtime:
-            v.unlink()                               # 重拍過：重新放大（upscale_vsr.py 不覆寫舊檔）
-        if UPSCALE == "lanczos":                     # Linux／Colab 沒有 RTX VSR：直接用下面 ffmpeg 的 lanczos 放大
+            v.unlink()                               # 重拍过：重新放大（upscale_vsr.py 不覆写旧档）
+        if UPSCALE == "lanczos":                     # Linux／Colab 没有 RTX VSR：直接用下面 ffmpeg 的 lanczos 放大
             v = src
         elif UPSCALE == "flashvsr":
             fv = vsr / r["id"]
@@ -575,7 +575,7 @@ def cut():
         for l in r["lines"]:
             a = load(l["file"]); s0 = int(l["film_start"] * SR); voice[s0:s0 + len(a)] += a[: n - s0]
             duck[max(0, int((l["film_start"] - 0.25) * SR)):int((l["film_end"] + 0.35) * SR)] = under
-        if r.get("amb"):                             # amb 階段確認過沒有人聲的 H3 原生音效
+        if r.get("amb"):                             # amb 阶段确认过没有人声的 H3 原生音效
             a = load(r["amb"])[int(r["src_in"] * SR):int(r["src_out"] * SR)]
             fade = np.minimum(1, np.minimum(np.arange(len(a)) / (0.15 * SR), (len(a) - np.arange(len(a))) / (0.15 * SR)))
             s0 = int(r["start"] * SR); amb_[s0:s0 + len(a)] += (a * fade * 0.8)[: n - s0]
@@ -587,7 +587,7 @@ def cut():
     raw = post / "mix_raw.wav"
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "f32le", "-ar", str(SR), "-ac", "1", "-i", "-", "-c:a", "pcm_f32le", str(raw)],
                    input=mix[: int(vtotal * SR)].astype(np.float32).tobytes(), check=True)
-    # 響度：量 → 固定增益 → 限幅（alimiter 一定要 level=false，預設會把峰值拉到 0 dBFS）→ 再量一次、差太多就補一次
+    # 响度：量 → 固定增益 → 限幅（alimiter 一定要 level=false，预设会把峰值拉到 0 dBFS）→ 再量一次、差太多就补一次
     target = MIX.get("target_lufs", -15.5); gain = 0.0
     for _ in range(3):
         r = subprocess.run(["ffmpeg", "-i", str(raw), "-af", f"volume={gain:.2f}dB,alimiter=limit=0.78:level=false:attack=2:release=80,ebur128",
@@ -598,7 +598,7 @@ def cut():
         gain += target - got
     run(["ffmpeg", "-y", "-loglevel", "error", "-i", raw, "-af", f"volume={gain:.2f}dB,alimiter=limit=0.78:level=false:attack=2:release=80", "-ar", str(SR),
          post / "mix.wav"])
-    # 字幕（ASS，依說話者上色，放大到 1080p 之後才燒）
+    # 字幕（ASS，依说话者上色，放大到 1080p 之后才烧）
     hdr = ("[Script Info]\nScriptType: v4.00+\nPlayResX: 1920\nPlayResY: 1080\n\n[V4+ Styles]\n"
            "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, "
            "Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n")
@@ -624,14 +624,14 @@ def cut():
 
 @stage("review")
 def review():
-    """自審五遍（review.py）：1 逐鏡抽格、2 成片聽寫、3 雜訊、4 黑畫面／定格／響度、5 切點明暗／台詞重疊／台詞被鏡尾切掉。"""
+    """自审五遍（review.py）：1 逐镜抽格、2 成片听写、3 杂讯、4 黑画面／定格／响度、5 切点明暗／台词重叠／台词被镜尾切掉。"""
     c = OUT / "cut" / "film_1080p.mp4"
-    env = {"AI_TOOLS": str(REPO / "tools")}                      # review.py 的 fonts.py 跟 film.json 的 repo_dir 走（範本搬到別的資料夾也能跑）
+    env = {"AI_TOOLS": str(REPO / "tools")}                      # review.py 的 fonts.py 跟 film.json 的 repo_dir 走（范本搬到别的资料夹也能跑）
     for r in (run([PYH3, HERE / "review.py", c], check=False, env=env), run([PYV, HERE / "review.py", c, "--asr"], check=False, env=env)):
         print(r.stdout[-3000:], flush=True)
-        if r.returncode != 0:                                    # 自審失敗不能悄悄略過
-            print(f"⚠ review.py 失敗（{r.returncode}）：\n{r.stderr[-2000:]}", flush=True)
-    print("→ 看 out/review/：film_1080p_pass1.jpg、pass5_cuts.jpg、review.json、asr.json；最後一定要人看成片", flush=True)
+        if r.returncode != 0:                                    # 自审失败不能悄悄略过
+            print(f"⚠ review.py 失败（{r.returncode}）：\n{r.stderr[-2000:]}", flush=True)
+    print("→ 看 out/review/：film_1080p_pass1.jpg、pass5_cuts.jpg、review.json、asr.json；最后一定要人看成片", flush=True)
 
 
 STAGES = dict(chars=chars, masters=masters, frames=frames, voices=voices, h3=h3, amb=amb, edl=edl, music=music, ending=ending, cut=cut, review=review)

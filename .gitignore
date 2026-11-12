@@ -17,7 +17,14 @@ models/
 __pycache__/
 *.pyc
 
-# 執行產物
+# 运行工作区与产物
+runtime/*
+!runtime/**/.gitkeep
+chars
+first
+input
+output
+
 setup/smoke_out/
 pipeline/demo_local/out/
 pipeline/*/out/

@@ -1,16 +1,16 @@
-"""換聲（voice conversion）：保留來源人聲每個字的時間與語調，只把音色換成角色參考音。2026-10-23 建立。
-用途：Seedance 2.5 等雲端影片自己生的台詞聲音 → 換成你的角色參考音，嘴型時間不變（作者實測 14 句：像角色參考音 0.16 → 0.69）。
-做法：用 BreezyVoice（CosyVoice-300M 架構）的零件，不經過文字：
-  來源人聲 → speech_tokenizer（50 Hz 語音 token，帶內容與節奏）
-  角色參考音 → 語音 token＋梅爾頻譜（當 flow 的提示）＋CAM++ 說話人向量
-  flow.inference(來源 token, 提示＝參考音) → 梅爾 → HiFT 聲碼器 → 角色音色的同一句話（同長度）
-限制：念錯的字（聲調）會跟著來源一起保留——要修讀音就換用 TTS 重配那一句。來源最好先用 BS-RoFormer 分離出乾淨人聲。
+"""换声（voice conversion）：保留来源人声每个字的时间与语调，只把音色换成角色参考音。2026-10-23 建立。
+用途：Seedance 2.5 等云端影片自己生的台词声音 → 换成你的角色参考音，嘴型时间不变（作者实测 14 句：像角色参考音 0.16 → 0.69）。
+做法：用 BreezyVoice（CosyVoice-300M 架构）的零件，不经过文字：
+  来源人声 → speech_tokenizer（50 Hz 语音 token，带内容与节奏）
+  角色参考音 → 语音 token＋梅尔频谱（当 flow 的提示）＋CAM++ 说话人向量
+  flow.inference(来源 token, 提示＝参考音) → 梅尔 → HiFT 声码器 → 角色音色的同一句话（同长度）
+限制：念错的字（声调）会跟著来源一起保留——要修读音就换用 TTS 重配那一句。来源最好先用 BS-RoFormer 分离出干净人声。
 
-執行（BreezyVoice venv，Python 3.10）：
+执行（BreezyVoice venv，Python 3.10）：
   set PYTHONPATH=C:\\AI\\BreezyVoice\\winstub;C:\\AI\\BreezyVoice\\code;C:\\AI\\BreezyVoice\\code\\third_party\\Matcha-TTS
   C:\\AI\\BreezyVoice\\venv\\Scripts\\python.exe tools\\cosy_vc.py jobs.json
-jobs.json：[{"src": "來源人聲.wav", "ref": "角色參考音.wav", "out": "輸出.wav"}, ...]   （相對路徑以 jobs.json 所在資料夾為準）
-輸出 22050 Hz 單聲道，長度與來源相同。"""
+jobs.json：[{"src": "来源人声.wav", "ref": "角色参考音.wav", "out": "输出.wav"}, ...]   （相对路径以 jobs.json 所在资料夹为准）
+输出 22050 Hz 单声道，长度与来源相同。"""
 import json
 import os
 import sys
@@ -29,7 +29,7 @@ from cosyvoice.utils.file_utils import load_wav  # noqa: E402
 
 
 class _VC:
-    """只載 frontend（語音 token、梅爾、說話人向量）與 flow／hift；BreezyVoice 的 frontend 多一個 model_dir 參數。"""
+    """只载 frontend（语音 token、梅尔、说话人向量）与 flow／hift；BreezyVoice 的 frontend 多一个 model_dir 参数。"""
 
     def __init__(self, model_dir):
         with open(f"{model_dir}/cosyvoice.yaml", "r", encoding="utf-8") as f:
@@ -41,7 +41,7 @@ class _VC:
         self.model.load(f"{model_dir}/llm.pt", f"{model_dir}/flow.pt", f"{model_dir}/hift.pt")
 
 MAX_SEC = 30          # speech_tokenizer 一次最多 30 秒
-REF_SEC = 12          # 參考音只取前 12 秒當提示（太長的提示會擠掉來源、變慢）
+REF_SEC = 12          # 参考音只取前 12 秒当提示（太长的提示会挤掉来源、变慢）
 
 
 def main():
@@ -57,8 +57,8 @@ def main():
             r22 = torchaudio.transforms.Resample(16000, 22050)(r16)
             tok, tok_len = fe._extract_speech_token(r16)
             feat, feat_len = fe._extract_speech_feat(r22)
-            # flow 裡梅爾幀數＝token 數 ÷ 50 × 22050 ÷ 256（約 1.72 倍）；提示的 token 與梅爾要照這個比例對齊，
-            # 否則 flow 會從輸出前面多切掉一段（2026-10-23 寫成 2 倍時，老師的句子 4 秒只剩 1.3 秒）
+            # flow 里梅尔帧数＝token 数 ÷ 50 × 22050 ÷ 256（约 1.72 倍）；提示的 token 与梅尔要照这个比例对齐，
+            # 否则 flow 会从输出前面多切掉一段（2026-10-23 写成 2 倍时，老师的句子 4 秒只剩 1.3 秒）
             n = min(tok.shape[1], int(feat.shape[1] * 50 * 256 / 22050))
             fl = int(n / 50 * 22050 / 256)
             cache[str(ref)] = (tok[:, :n], torch.tensor([n], dtype=torch.int32), feat[:, :fl],

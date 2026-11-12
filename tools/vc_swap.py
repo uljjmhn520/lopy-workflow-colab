@@ -1,35 +1,35 @@
-"""台詞換字（不重拍影片）：把念錯／不好的字換成 Ming 用角色聲音念的正確字，接回原位置，再整句換聲統一音色。2026-11-07 建立。
-作者實測：雲端影片（Gemini Omni）一句台詞換掉「上」一字，試聽自然；一次換兩字（含同音字寫法）也可。
-整句長度、每個字的時間都不變 → 嘴型照樣對。
+"""台词换字（不重拍影片）：把念错／不好的字换成 Ming 用角色声音念的正确字，接回原位置，再整句换声统一音色。2026-11-07 建立。
+作者实测：云端影片（Gemini Omni）一句台词换掉「上」一字，试听自然；一次换两字（含同音字写法）也可。
+整句长度、每个字的时间都不变 → 嘴型照样对。
 
 用法（Voice venv）：
   C:\\AI\\Voice\\venv\\Scripts\\python.exe tools\\vc_swap.py job.json
-job.json（相對路徑以 job.json 所在資料夾為準）：
-  {"src": "clip.mp4",                  # 影片（自動分人聲／背景，做完重混換回影片）或乾淨人聲 .wav
-   "line": "第一點。我站在桌上。他看著我說，由，先下來。",   # 來源「實際念的」字（含標點；念錯的字照正確字寫，用來對齊）
-   "ref": "characters/<角色>/voice_ref.wav",  # 角色參考音（Ming 克隆＋cosy_vc 換聲提示）
-   "ref_text": "...",                   # 可省：參考音逐字稿，預設讀 ref 同資料夾的 voice_profile.json 的 reference_text
-   "swaps": [{"at": "桌上", "char": "上",   # 用 line 裡的片段定位（片段要唯一；char 預設＝片段最後一字）
-              "tts": "我站在桌上。",          # 可省：Ming 要念的句子，預設＝line 裡含這個字的那一小句
-              "tts_at": "桌上", "tts_char": "上"}],   # 可省：同音字技巧時（tts 寫「交學」）指定 tts 裡要切的字
-   "vc": "cosy",                        # cosy（預設，整句換聲）| none（只接字、不換聲）
-   "out": "clip_fixed.mp4",             # .mp4（影片）或 .wav（人聲）
-   "work": "可省，預設 <out 檔名>_vcswap/"}
+job.json（相对路径以 job.json 所在资料夹为准）：
+  {"src": "clip.mp4",                  # 影片（自动分人声／背景，做完重混换回影片）或干净人声 .wav
+   "line": "第一点。我站在桌上。他看著我说，由，先下来。",   # 来源「实际念的」字（含标点；念错的字照正确字写，用来对齐）
+   "ref": "characters/<角色>/voice_ref.wav",  # 角色参考音（Ming 克隆＋cosy_vc 换声提示）
+   "ref_text": "...",                   # 可省：参考音逐字稿，预设读 ref 同资料夹的 voice_profile.json 的 reference_text
+   "swaps": [{"at": "桌上", "char": "上",   # 用 line 里的片段定位（片段要唯一；char 预设＝片段最后一字）
+              "tts": "我站在桌上。",          # 可省：Ming 要念的句子，预设＝line 里含这个字的那一小句
+              "tts_at": "桌上", "tts_char": "上"}],   # 可省：同音字技巧时（tts 写「交学」）指定 tts 里要切的字
+   "vc": "cosy",                        # cosy（预设，整句换声）| none（只接字、不换声）
+   "out": "clip_fixed.mp4",             # .mp4（影片）或 .wav（人声）
+   "work": "可省，预设 <out 档名>_vcswap/"}
 
 流程：
-  1. 影片 → BS-RoFormer 分出人聲／背景。
-  2. 找字的位置：MMS 強制對齊（pron_check.align）逐字找起訖 → 用音量修邊界
-     （起點＝MMS 起點前 80 毫秒內最安靜的地方；後面接停頓時，終點延到音量比該字最大聲低 25 dB 為止）。
-  3. Ming（make_ming.py，角色參考音克隆、4 seed、自動挑）念 tts → 同樣方法找到要切的字。
-  4. 切下 Ming 的字 → 照前後字的音高比例移調（Ming 角色聲音音域常跟來源不同，不移會突然拔高，作者實測 +10 半音）
-     → 拉成原本那格的長度 → 音量對齊 → 12 毫秒交叉淡化接進來源人聲。
-  5. 整句 cosy_vc 換聲（音色、接縫一起抹平）→ 跟背景重混 → 換回影片。
-  6. 報告 <work>/report.json：每個換的字的位置、拉長倍率、聲調判定前後（pron_check）、整句聽寫前後、像角色前後、長度是否不變。
+  1. 影片 → BS-RoFormer 分出人声／背景。
+  2. 找字的位置：MMS 强制对齐（pron_check.align）逐字找起讫 → 用音量修边界
+     （起点＝MMS 起点前 80 毫秒内最安静的地方；后面接停顿时，终点延到音量比该字最大声低 25 dB 为止）。
+  3. Ming（make_ming.py，角色参考音克隆、4 seed、自动挑）念 tts → 同样方法找到要切的字。
+  4. 切下 Ming 的字 → 照前后字的音高比例移调（Ming 角色声音音域常跟来源不同，不移会突然拔高，作者实测 +10 半音）
+     → 拉成原本那格的长度 → 音量对齐 → 12 毫秒交叉淡化接进来源人声。
+  5. 整句 cosy_vc 换声（音色、接缝一起抹平）→ 跟背景重混 → 换回影片。
+  6. 报告 <work>/report.json：每个换的字的位置、拉长倍率、声调判定前后（pron_check）、整句听写前后、像角色前后、长度是否不变。
 限制：
-  - 只修「聲音」。換成嘴型差很多的字（號→日）要看畫面；聲調、破音字、腔調這類嘴型幾乎一樣的最適合。
-  - 拉長倍率超出 0.7–1.4 會警告（太快或太慢會不自然），可改 tts 寫法（加減停頓、換短句）重跑。
-  - cosy_vc 會保留來源其他字的聲調；要一次修很多字，乾脆整句改 Ming 固定音軌。
-  - 結果一定要人聽接縫。"""
+  - 只修「声音」。换成嘴型差很多的字（号→日）要看画面；声调、破音字、腔调这类嘴型几乎一样的最适合。
+  - 拉长倍率超出 0.7–1.4 会警告（太快或太慢会不自然），可改 tts 写法（加减停顿、换短句）重跑。
+  - cosy_vc 会保留来源其他字的声调；要一次修很多字，干脆整句改 Ming 固定音轨。
+  - 结果一定要人听接缝。"""
 import glob
 import json
 import os
@@ -44,7 +44,7 @@ import numpy as np
 import soundfile as sf
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-os.environ["PYTHONIOENCODING"] = "utf-8"   # make_ming 會印簡體字，子程式輸出被導向時 cp950 會當掉
+os.environ["PYTHONIOENCODING"] = "utf-8"   # make_ming 会印简体字，子程式输出被导向时 cp950 会当掉
 TOOLS = Path(__file__).resolve().parent
 sys.path.insert(0, str(TOOLS))
 import pron_check as pc  # noqa: E402
@@ -67,7 +67,7 @@ def run(*a, **k):
 
 
 def hanzi(text):
-    """line 裡的漢字（跟 pron_check.expected 的 chars 一一對應）＋每個漢字後面是不是標點（停頓）。"""
+    """line 里的汉字（跟 pron_check.expected 的 chars 一一对应）＋每个汉字后面是不是标点（停顿）。"""
     chars, pause = [], []
     for c in text:
         if "\u4e00" <= c <= "\u9fff" or c.isdigit():
@@ -81,10 +81,10 @@ def locate(chars, at, ch):
     s = "".join(chars)
     i = s.find(at)
     if i < 0 or s.find(at, i + 1) >= 0:
-        raise SystemExit(f"[vc_swap] 「{at}」在「{s}」裡找不到或不只一處，請把 at 寫長一點")
+        raise SystemExit(f"[vc_swap] 「{at}」在「{s}」里找不到或不只一处，请把 at 写长一点")
     j = at.find(ch) if ch else len(at) - 1
     if j < 0:
-        raise SystemExit(f"[vc_swap] 「{ch}」不在「{at}」裡")
+        raise SystemExit(f"[vc_swap] 「{ch}」不在「{at}」里")
     return i + j
 
 
@@ -97,7 +97,7 @@ def intensity(x, sr):
 
 
 def spans(wav, text):
-    """逐字（起, 終）秒；MMS 對齊後用音量修邊界，讓起點落在子音前的低點、停頓前的字包含整個收尾。"""
+    """逐字（起, 终）秒；MMS 对齐后用音量修边界，让起点落在子音前的低点、停顿前的字包含整个收尾。"""
     import librosa
     x, sr = sf.read(str(wav), dtype="float32", always_2d=True)
     x = x.mean(1)
@@ -113,13 +113,13 @@ def spans(wav, text):
         f0, f1 = int(lo * 100), max(int(lo * 100) + 1, int(a * 100) + 1)
         a2 = (f0 + int(np.argmin(db[f0:f1]))) / 100 if f1 > f0 else a
         nxt = sp[k + 1][0] if k + 1 < len(sp) else len(x) / sr
-        if pause[k] or k == len(sp) - 1:                 # 後面停頓：延到音量掉 25 dB
+        if pause[k] or k == len(sp) - 1:                 # 后面停顿：延到音量掉 25 dB
             peak = db[int(a * 100):max(int(a * 100) + 1, int(b * 100))].max()
             e = int(b * 100)
             while e < min(len(db) - 1, int(nxt * 100) - 2, int((b + 0.35) * 100)) and db[e] > peak - 25:
                 e += 1
             b2 = e / 100
-        else:                                            # 後面緊接下一字：切在兩字之間最安靜的地方
+        else:                                            # 后面紧接下一字：切在两字之间最安静的地方
             g0, g1 = int(b * 100), max(int(b * 100) + 1, int(nxt * 100))
             b2 = (g0 + int(np.argmin(db[g0:g1]))) / 100
         out.append((round(a2, 3), round(max(b2, a2 + 0.05), 3)))
@@ -127,7 +127,7 @@ def spans(wav, text):
 
 
 def local_f0(wav, a, b, win=0.6):
-    """[a, b] 前後各 win 秒（不含本字）的濁音 F0 中位數＝這個字周圍的說話音域。"""
+    """[a, b] 前后各 win 秒（不含本字）的浊音 F0 中位数＝这个字周围的说话音域。"""
     import parselmouth
     p = parselmouth.Sound(str(wav)).to_pitch_ac(time_step=0.01, pitch_floor=65, pitch_ceiling=500)
     t, f = p.xs(), p.selected_array["frequency"]
@@ -136,7 +136,7 @@ def local_f0(wav, a, b, win=0.6):
 
 
 def clause_of(line, idx):
-    """line 裡含第 idx 個漢字的那一小句（標點切開，保留句尾標點）。"""
+    """line 里含第 idx 个汉字的那一小句（标点切开，保留句尾标点）。"""
     parts = re.findall(r"[^。，！？；：…,!?;:]+[。，！？；：…,!?;:]?", line)
     n = 0
     for p in parts:
@@ -176,7 +176,7 @@ def cosy(src, ref, out):
 
 
 def measure(wavs, ref, line, idxs):
-    """整句聽寫、像角色（CAM++）、換的字的聲調判定。"""
+    """整句听写、像角色（CAM++）、换的字的声调判定。"""
     import onnxruntime as ort
     import torch
     import torchaudio
@@ -193,7 +193,7 @@ def measure(wavs, ref, line, idxs):
     r_emb = emb(ref)
     res = {}
     for name, p in wavs.items():
-        segs, _ = asr.transcribe(str(p), language="zh", initial_prompt="以下是台灣國語的對話。")
+        segs, _ = asr.transcribe(str(p), language="zh", initial_prompt="以下是台湾国语的对话。")
         pr = pc.check(p, line)
         res[name] = {"asr": "".join(s.text for s in segs).strip(), "sim": round(float(emb(p) @ r_emb), 3),
                      "sec": round(sf.info(str(p)).duration, 3),
@@ -214,7 +214,7 @@ def main():
 
     voc, bg = separate(src, work) if is_video else (src, None)
     chars, sp = spans(voc, line)
-    print("[vc_swap] 來源逐字：" + " ".join(f"{c}{a:.2f}-{b:.2f}" for c, (a, b) in zip(chars, sp)))
+    print("[vc_swap] 来源逐字：" + " ".join(f"{c}{a:.2f}-{b:.2f}" for c, (a, b) in zip(chars, sp)))
 
     plan = []
     for k, s in enumerate(job["swaps"]):
@@ -233,12 +233,12 @@ def main():
         j0 = ts.find(p["tts_at"])
         j = (j0 + p["tts_at"].find(p["tts_char"])) if j0 >= 0 and p["tts_char"] in p["tts_at"] else ts.find(p["tts_char"])
         if j < 0:
-            raise SystemExit(f"[vc_swap] tts「{p['tts']}」裡找不到「{p['tts_char']}」")
+            raise SystemExit(f"[vc_swap] tts「{p['tts']}」里找不到「{p['tts_char']}」")
         (a, b), (c, d) = sp[p["idx"]], tsp[j]
         seg, fit = work / f"{p['name']}_cut.wav", work / f"{p['name']}_fit.wav"
         run("ffmpeg", "-y", "-v", "error", "-i", wavs[p["name"]], "-ss", max(0, c - XF), "-to", d + XF, "-ac", x.shape[1], "-ar", sr, seg)
         tempo = (d - c) / (b - a)
-        # 音域對齊：Ming 的角色聲音可能比來源高或低（作者實測來源 106 Hz vs Ming 144 Hz）→ 照前後字的音高比例移調，避免換的字突然拔高
+        # 音域对齐：Ming 的角色声音可能比来源高或低（作者实测来源 106 Hz vs Ming 144 Hz）→ 照前后字的音高比例移调，避免换的字突然拔高
         f_src, f_tts = local_f0(voc, a, b), local_f0(wavs[p["name"]], c, d)
         pitch = min(1.5, max(0.67, f_src / f_tts)) if f_src and f_tts else 1.0
         af = f"asetrate={int(sr * pitch)},aresample={sr},atempo={tempo / pitch:.4f}"
@@ -254,8 +254,8 @@ def main():
         y[n0:n1] = new
         p.update(src_span=[a, b], tts_span=[c, d], stretch=round(1 / tempo, 3))
         warn = "  ⚠ 倍率超出 0.7–1.4，可能不自然" if not 0.7 <= 1 / tempo <= 1.4 else ""
-        print(f"[vc_swap] {p['char']}：來源 {a:.2f}-{b:.2f}  ←  Ming「{p['tts']}」{c:.2f}-{d:.2f}  拉長 ×{1 / tempo:.2f}"
-              f"  移調 {p['pitch_shift_semitones']:+} 半音{warn}")
+        print(f"[vc_swap] {p['char']}：来源 {a:.2f}-{b:.2f}  ←  Ming「{p['tts']}」{c:.2f}-{d:.2f}  拉长 ×{1 / tempo:.2f}"
+              f"  移调 {p['pitch_shift_semitones']:+} 半音{warn}")
     spliced = work / "vocal_spliced.wav"
     sf.write(str(spliced), y, sr)
 
@@ -273,7 +273,7 @@ def main():
         run("ffmpeg", "-y", "-v", "error", "-i", src, "-i", final, "-i", bg, "-filter_complex", flt,
             "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", out)
     else:
-        raise SystemExit("[vc_swap] 來源是 wav 時 out 也要是 .wav")
+        raise SystemExit("[vc_swap] 来源是 wav 时 out 也要是 .wav")
 
     rep = {"src": str(src), "out": str(out), "line": line, "vc": vc, "swaps": plan,
            "measure": measure({"before": voc, "after": final}, ref, line, [p["idx"] for p in plan])}
@@ -281,9 +281,9 @@ def main():
     (work / "report.json").write_text(json.dumps(rep, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
     for k in ("before", "after"):
         mm = rep["measure"][k]
-        print(f"[vc_swap] {k}: 聽寫「{mm['asr']}」 像角色 {mm['sim']}  長度 {mm['sec']}s  " +
-              " ".join(f"{c['char']}({c['pinyin']}→{c['tone']}聲 {c['verdict']} {c['desc']})" for c in mm["chars"]))
-    print(f"[vc_swap] 完成 {out}（長度不變 {rep['length_same']}）；報告 {work / 'report.json'}；接縫一定要人聽")
+        print(f"[vc_swap] {k}: 听写「{mm['asr']}」 像角色 {mm['sim']}  长度 {mm['sec']}s  " +
+              " ".join(f"{c['char']}({c['pinyin']}→{c['tone']}声 {c['verdict']} {c['desc']})" for c in mm["chars"]))
+    print(f"[vc_swap] 完成 {out}（长度不变 {rep['length_same']}）；报告 {work / 'report.json'}；接缝一定要人听")
 
 
 if __name__ == "__main__":

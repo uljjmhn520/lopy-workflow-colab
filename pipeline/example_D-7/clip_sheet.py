@@ -1,4 +1,4 @@
-"""H3 片段抽格表：python clip_sheet.py out.jpg S01 S02 ...（每鏡 6 格，標秒數）"""
+"""H3 片段抽格表：python clip_sheet.py out.jpg S01 S02 ...（每镜 6 格，标秒数）"""
 import subprocess, sys
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont

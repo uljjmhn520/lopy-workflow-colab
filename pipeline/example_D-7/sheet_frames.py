@@ -1,4 +1,4 @@
-"""首幀總覽：python sheet_frames.py out.jpg id1 id2 ...（直式小格自動並排）"""
+"""首帧总览：python sheet_frames.py out.jpg id1 id2 ...（直式小格自动并排）"""
 import sys
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont

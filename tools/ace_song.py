@@ -1,12 +1,12 @@
-"""ACE-Step 1.5 XL 唱詞歌（本機 ComfyUI 原生節點；歌曲 Plan C：歌可以用，但人聲帶金屬聲）。
-可直接設 BPM／長度／調性／語言，實測每首拍速都照設定（YuE2 約一半會跑掉）。
-用法：python ace_song.py <名稱> <角色> --style 標籤.txt --lyrics 歌詞.txt --out 輸出資料夾 [--model xl_sft|xl_turbo] [--seeds 1,2,3,4] [--secs 90] [--bpm 144] [--key "D minor"]
-- xl_sft：50 步、cfg 4，5090 約 18–20 秒一首（品質版）；xl_turbo：8 步、cfg 1，約 10 秒。
-- 標籤＝英文逗號關鍵字（曲風、配器、人聲、氣氛；BPM／調性不要寫在標籤裡，用參數給）；
-  歌詞段落可加修飾，例 [Verse - aggressive]、[Build]、[Chorus - explosive]。
-- 試過不要用：給參考音樂（ReferenceTimbreAudio、關掉 LM 音碼）→ 拍速亂、幾乎沒唱詞。
-- 只在 ComfyUI 0.40 實測過（XL 權重）。模型清單 setup/downloads_acestep.json。
-環境變數：COMFY_HOST（預設 http://127.0.0.1:8188）、COMFY_DIR（ComfyUI 資料夾）。"""
+"""ACE-Step 1.5 XL 唱词歌（本机 ComfyUI 原生节点；歌曲 Plan C：歌可以用，但人声带金属声）。
+可直接设 BPM／长度／调性／语言，实测每首拍速都照设定（YuE2 约一半会跑掉）。
+用法：python ace_song.py <名称> <角色> --style 标签.txt --lyrics 歌词.txt --out 输出资料夹 [--model xl_sft|xl_turbo] [--seeds 1,2,3,4] [--secs 90] [--bpm 144] [--key "D minor"]
+- xl_sft：50 步、cfg 4，5090 约 18–20 秒一首（品质版）；xl_turbo：8 步、cfg 1，约 10 秒。
+- 标签＝英文逗号关键字（曲风、配器、人声、气氛；BPM／调性不要写在标签里，用参数给）；
+  歌词段落可加修饰，例 [Verse - aggressive]、[Build]、[Chorus - explosive]。
+- 试过不要用：给参考音乐（ReferenceTimbreAudio、关掉 LM 音码）→ 拍速乱、几乎没唱词。
+- 只在 ComfyUI 0.40 实测过（XL 权重）。模型清单 setup/downloads_acestep.json。
+环境变数：COMFY_HOST（预设 http://127.0.0.1:8188）、COMFY_DIR（ComfyUI 资料夹）。"""
 import argparse, json, os, shutil, time, urllib.request
 from pathlib import Path
 

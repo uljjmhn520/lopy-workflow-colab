@@ -1,14 +1,14 @@
 {
- "title": "微積分之戰",
+ "title": "微积分之战",
  "repo_dir": "../..",
  "image_backend": "qwen",
  "seed0": 8300,
  "rappers": {
   "A": {
-   "name": "牛頓",
-   "short": "牛頓",
+   "name": "牛顿",
+   "short": "牛顿",
    "team": "金方",
-   "tagline": "英國・萬有引力・流數法",
+   "tagline": "英国・万有引力・流数法",
    "color": [
     255,
     158,
@@ -23,7 +23,7 @@
    "desc": "Isaac Newton, a handsome brooding forty-five-year-old English scientist with long natural shoulder-length wavy greying-brown hair and light stubble, a deep crimson velvet coat with gold buttons, a dark waistcoat and a white linen neckcloth",
    "song": "song/A.mp3",
    "bpm": 144,
-   "suno_title": "微積分之戰_牛頓",
+   "suno_title": "微积分之战_牛顿",
    "suno_style": "ONE CONTINUOUS RAP VERSE from start to finish: no chorus, no hook, no repeated lines, no instrumental break in the middle; EXACTLY 144 BPM (half-time 72 BPM feel); DARK BRITISH BAROQUE BOOM-BAP battle rap: a 4-bar intro of dark HARPSICHORD and church organ with vinyl crackle, then hard-hitting boom-bap drums with heavy 808 bass, DJ SCRATCHING and vinyl record scratches between lines, orchestral string stabs and timpani hits; the LAST FOUR LINES build up, louder and angrier; after the last line the beat STOPS DEAD on one huge orchestral hit + 808 on the downbeat (hard stop, no fade-out, no outro); ONE SOLO MALE RAPPER only: a DEEP, RASPY, GRAVELLY older baritone with a heavy, menacing, arrogant, aggressive flow, every word punched hard and clear, crystal-clear Mandarin rap with Taiwanese diction, every Chinese number rapped clearly and separately",
    "suno_negative": "singing ballad, slow, sleepy, lo-fi, sad, mumble rap, autotune-heavy, female voice, children's voice, choir, rock, metal, edm drop, k-pop, muddy mix, second rapper, duet, featuring, choir vocals",
    "vocal_gender": "m",
@@ -37,64 +37,64 @@
      "sec": "Verse",
      "lines": [
       {
-       "sing": "一六六五 瘟疫爆發 劍橋 關門放假",
-       "show": "1665 瘟疫爆發　劍橋關門放假",
+       "sing": "一六六五 瘟疫爆发 剑桥 关门放假",
+       "show": "1665 瘟疫爆发　剑桥关门放假",
        "rhyme": "放假"
       },
       {
-       "sing": "我回鄉下 蘋果砸下 整個宇宙 收進我 掌下",
-       "show": "我回鄉下　蘋果砸下　整個宇宙收進我掌下",
+       "sing": "我回乡下 苹果砸下 整个宇宙 收进我 掌下",
+       "show": "我回乡下　苹果砸下　整个宇宙收进我掌下",
        "rhyme": "掌下"
       },
       {
-       "sing": "流數法 我先發明 我想通了 萬有引力",
-       "show": "流數法我先發明　我想通了萬有引力",
+       "sing": "流数法 我先发明 我想通了 万有引力",
+       "show": "流数法我先发明　我想通了万有引力",
        "rhyme": "引力"
       },
       {
-       "sing": "你這德國來的 二手貨 根本 沒有實力",
-       "show": "你這德國來的二手貨　根本沒有實力",
-       "rhyme": "實力"
+       "sing": "你这德国来的 二手货 根本 没有实力",
+       "show": "你这德国来的二手货　根本没有实力",
+       "rhyme": "实力"
       },
       {
-       "sing": "一六八七 我出版原理 三大定律 寫在 第一",
-       "show": "1687 我出版《原理》　三大定律寫在第一",
+       "sing": "一六八七 我出版原理 三大定律 写在 第一",
+       "show": "1687 我出版《原理》　三大定律写在第一",
        "rhyme": "一"
       },
       {
-       "sing": "物理課本 翻開 第一頁 誰的名字 印在 那裡",
-       "show": "物理課本翻開第一頁　誰的名字印在那裡",
-       "rhyme": "裡"
+       "sing": "物理课本 翻开 第一页 谁的名字 印在 那里",
+       "show": "物理课本翻开第一页　谁的名字印在那里",
+       "rhyme": "里"
       },
       {
-       "sing": "皇家學會 會長是我 英國科學 我當家",
-       "show": "皇家學會會長是我　英國科學我當家",
+       "sing": "皇家学会 会长是我 英国科学 我当家",
+       "show": "皇家学会会长是我　英国科学我当家",
        "rhyme": "家"
       },
       {
-       "sing": "你一個 外交官 寫寫信 也敢 跟我 拚身價",
-       "show": "你一個外交官寫寫信　也敢跟我拚身價",
-       "rhyme": "價"
+       "sing": "你一个 外交官 写写信 也敢 跟我 拚身价",
+       "show": "你一个外交官写写信　也敢跟我拚身价",
+       "rhyme": "价"
       },
       {
-       "sing": "微積分 我早寫好 十年 鎖在 抽屜",
-       "show": "微積分我早寫好　10 年鎖在抽屜",
-       "rhyme": "抽屜"
+       "sing": "微积分 我早写好 十年 锁在 抽屉",
+       "show": "微积分我早写好　10 年锁在抽屉",
+       "rhyme": "抽屉"
       },
       {
-       "sing": "你跑來 倫敦 偷看一眼 回去 就敢 抄襲",
-       "show": "你跑來倫敦偷看一眼　回去就敢抄襲",
-       "rhyme": "抄襲"
+       "sing": "你跑来 伦敦 偷看一眼 回去 就敢 抄袭",
+       "show": "你跑来伦敦偷看一眼　回去就敢抄袭",
+       "rhyme": "抄袭"
       },
       {
-       "sing": "我把方法 寫成密碼 就是要防 你這種 小偷",
-       "show": "我把方法寫成密碼　就是要防你這種小偷",
+       "sing": "我把方法 写成密码 就是要防 你这种 小偷",
+       "show": "我把方法写成密码　就是要防你这种小偷",
        "rhyme": "偷"
       },
       {
-       "sing": "結果你 換個符號 假裝 自己 起頭",
-       "show": "結果你換個符號　假裝自己起頭",
-       "rhyme": "頭"
+       "sing": "结果你 换个符号 假装 自己 起头",
+       "show": "结果你换个符号　假装自己起头",
+       "rhyme": "头"
       }
      ]
     },
@@ -102,24 +102,24 @@
      "sec": "Final Build: starts stripped back with no drums and a quiet restrained voice, adds one layer every two lines, voice rises step by step, full power only on the last line",
      "lines": [
       {
-       "sing": "你的 D X 花拳繡腿 符號 做得 漂亮",
-       "show": "你的 dx 花拳繡腿　符號做得漂亮",
+       "sing": "你的 D X 花拳绣腿 符号 做得 漂亮",
+       "show": "你的 dx 花拳绣腿　符号做得漂亮",
        "rhyme": "漂亮"
       },
       {
-       "sing": "我的流數 真材實料 算出 潮汐 和 月亮",
-       "show": "我的流數真材實料　算出潮汐和月亮",
+       "sing": "我的流数 真材实料 算出 潮汐 和 月亮",
+       "show": "我的流数真材实料　算出潮汐和月亮",
        "rhyme": "月亮"
       },
       {
-       "sing": "站在巨人 肩上的人 是我 你只配 站我 腳邊",
-       "show": "站在巨人肩上的人是我　你只配站我腳邊",
-       "rhyme": "邊"
+       "sing": "站在巨人 肩上的人 是我 你只配 站我 脚边",
+       "show": "站在巨人肩上的人是我　你只配站我脚边",
+       "rhyme": "边"
       },
       {
-       "sing": "麥克風 給你 德國的 抄襲犯 讓全場 看你 丟臉",
-       "show": "麥克風給你　德國的抄襲犯　讓全場看你丟臉",
-       "rhyme": "丟臉"
+       "sing": "麦克风 给你 德国的 抄袭犯 让全场 看你 丢脸",
+       "show": "麦克风给你　德国的抄袭犯　让全场看你丢脸",
+       "rhyme": "丢脸"
       }
      ]
     },
@@ -130,15 +130,15 @@
    ],
    "intro_card": [
     [
-     "牛頓",
+     "牛顿",
      120
     ],
     [
-     "英國 萬有引力 流數法",
+     "英国 万有引力 流数法",
      54
     ],
     [
-     "皇家學會會長",
+     "皇家学会会长",
      42
     ]
    ],
@@ -146,10 +146,10 @@
    "pronoun": "he"
   },
   "B": {
-   "name": "萊布尼茲",
-   "short": "萊布尼茲",
-   "team": "綠方",
-   "tagline": "德國・微積分符號 dx",
+   "name": "莱布尼兹",
+   "short": "莱布尼兹",
+   "team": "绿方",
+   "tagline": "德国・微积分符号 dx",
    "color": [
     40,
     214,
@@ -164,7 +164,7 @@
    "desc": "Gottfried Leibniz, a handsome lively forty-year-old German scholar in a huge dark-brown curly full-bottomed periwig, a royal-blue brocade coat with silver embroidery, a white lace cravat and lace cuffs",
    "song": "song/B.mp3",
    "bpm": 144,
-   "suno_title": "微積分之戰_萊布尼茲",
+   "suno_title": "微积分之战_莱布尼兹",
    "suno_style": "ONE CONTINUOUS RAP VERSE from start to finish: no chorus, no hook, no repeated lines, no instrumental break in the middle; EXACTLY 144 BPM (half-time 72 BPM feel); GERMAN BAROQUE TRAP battle rap: opens with a 4-bar DJ INTRO of turntable scratches and a record rewind, then a fast minor-key PIPE ORGAN riff and glitchy digital binary bleeps drop in; sliding 808 bass, sharp rolling hi-hats, hard snares, DJ scratches between lines; the LAST SIX LINES are a furious knockout climax: the drums double, the rapper gets louder line by line and SHOUTS the final lines, the crowd roars 'OHHH', then the beat rides out 4 bars with scratches; ONE SOLO MALE RAPPER only: a BRIGHT, SHARP, slightly nasal younger TENOR with a fast, precise, rapid-fire, savage flow that stays clear, crystal-clear Mandarin rap with Taiwanese diction, every Chinese number rapped clearly and separately",
    "suno_negative": "singing ballad, slow, sleepy, lo-fi, sad, mumble rap, autotune-heavy, female voice, children's voice, choir, rock, metal, edm drop, k-pop, muddy mix, second rapper, duet, featuring, choir vocals",
    "vocal_gender": "m",
@@ -178,73 +178,73 @@
      "sec": "Verse",
      "lines": [
       {
-       "sing": "巨人肩膀上 你根本 只會 踩人",
-       "show": "巨人肩膀上　你根本只會踩人",
+       "sing": "巨人肩膀上 你根本 只会 踩人",
+       "show": "巨人肩膀上　你根本只会踩人",
        "rhyme": "踩人"
       },
       {
-       "sing": "方法鎖在 抽屜十年 誰認得 你這個 怪人",
-       "show": "方法鎖在抽屜 10 年　誰認得你這個怪人",
+       "sing": "方法锁在 抽屉十年 谁认得 你这个 怪人",
+       "show": "方法锁在抽屉 10 年　谁认得你这个怪人",
        "rhyme": "怪人"
       },
       {
-       "sing": "一六八四 我先登報 全歐洲 都在 讀我",
-       "show": "1684 我先登報　全歐洲都在讀我",
+       "sing": "一六八四 我先登报 全欧洲 都在 读我",
+       "show": "1684 我先登报　全欧洲都在读我",
        "rhyme": "我"
       },
       {
-       "sing": "你的流數 拖到 一七零四 才敢出書 還要 怪我",
-       "show": "你的流數拖到 1704 才敢出書　還要怪我",
+       "sing": "你的流数 拖到 一七零四 才敢出书 还要 怪我",
+       "show": "你的流数拖到 1704 才敢出书　还要怪我",
        "rhyme": "我"
       },
       {
-       "sing": "微分 D X 積分 長S 課本每頁 都是 我寫的",
-       "show": "微分 dx　積分長 S　課本每頁都是我寫的",
+       "sing": "微分 D X 积分 长S 课本每页 都是 我写的",
+       "show": "微分 dx　积分长 S　课本每页都是我写的",
        "rhyme": "的"
       },
       {
-       "sing": "你的小點點 英國死守 一百年 數學落後 全是 你害的",
-       "show": "你的小點點英國死守 100 年　數學落後全是你害的",
+       "sing": "你的小点点 英国死守 一百年 数学落后 全是 你害的",
+       "show": "你的小点点英国死守 100 年　数学落后全是你害的",
        "rhyme": "的"
       },
       {
-       "sing": "一七一二 皇家學會 判我抄襲 報告寫得 好威風",
-       "show": "1712 皇家學會判我抄襲　報告寫得好威風",
-       "rhyme": "風"
+       "sing": "一七一二 皇家学会 判我抄袭 报告写得 好威风",
+       "show": "1712 皇家学会判我抄袭　报告写得好威风",
+       "rhyme": "风"
       },
       {
-       "sing": "執筆的 是你自己 球員兼裁判 你玩得 好輕鬆",
-       "show": "執筆的是你自己　球員兼裁判你玩得好輕鬆",
-       "rhyme": "鬆"
+       "sing": "执笔的 是你自己 球员兼裁判 你玩得 好轻松",
+       "show": "执笔的是你自己　球员兼裁判你玩得好轻松",
+       "rhyme": "松"
       },
       {
-       "sing": "蘋果 砸到頭 你才 開竅",
-       "show": "蘋果砸到頭你才開竅",
-       "rhyme": "開竅"
+       "sing": "苹果 砸到头 你才 开窍",
+       "show": "苹果砸到头你才开窍",
+       "rhyme": "开窍"
       },
       {
-       "sing": "我一個零 一個一 整個電腦時代 被我 改造",
-       "show": "我一個 0 一個 1　整個電腦時代被我改造",
+       "sing": "我一个零 一个一 整个电脑时代 被我 改造",
+       "show": "我一个 0 一个 1　整个电脑时代被我改造",
        "rhyme": "改造"
       },
       {
-       "sing": "算得出 行星怎麼繞 算不出 股票 怎麼跌",
-       "show": "算得出行星怎麼繞　算不出股票怎麼跌",
+       "sing": "算得出 行星怎么绕 算不出 股票 怎么跌",
+       "show": "算得出行星怎么绕　算不出股票怎么跌",
        "rhyme": "跌"
       },
       {
-       "sing": "南海泡沫 賠到破產 大科學家 被割到 流血",
-       "show": "南海泡沫賠到破產　大科學家被割到流血",
+       "sing": "南海泡沫 赔到破产 大科学家 被割到 流血",
+       "show": "南海泡沫赔到破产　大科学家被割到流血",
        "rhyme": "血"
       },
       {
-       "sing": "半夜不睡 煉金術 想把鉛 變成 黃金",
-       "show": "半夜不睡煉金術　想把鉛變成黃金",
-       "rhyme": "黃金"
+       "sing": "半夜不睡 炼金术 想把铅 变成 黄金",
+       "show": "半夜不睡炼金术　想把铅变成黄金",
+       "rhyme": "黄金"
       },
       {
-       "sing": "你的腦袋 比鉛還重 我看先煉 你的 良心",
-       "show": "你的腦袋比鉛還重　我看先煉你的良心",
+       "sing": "你的脑袋 比铅还重 我看先炼 你的 良心",
+       "show": "你的脑袋比铅还重　我看先炼你的良心",
        "rhyme": "良心"
       }
      ]
@@ -253,33 +253,33 @@
      "sec": "Final Build: starts stripped back with no drums and a quiet restrained voice, adds one layer every two lines, voice rises step by step, full power only on the last line",
      "lines": [
       {
-       "sing": "你說我抄 全世界 用我的符號 在考試",
-       "show": "你說我抄？全世界用我的符號在考試",
-       "rhyme": "試"
+       "sing": "你说我抄 全世界 用我的符号 在考试",
+       "show": "你说我抄？全世界用我的符号在考试",
+       "rhyme": "试"
       },
       {
-       "sing": "你的點點 被擦掉 連英國 都改用 我的方式",
-       "show": "你的點點被擦掉　連英國都改用我的方式",
+       "sing": "你的点点 被擦掉 连英国 都改用 我的方式",
+       "show": "你的点点被擦掉　连英国都改用我的方式",
        "rhyme": "式"
       },
       {
-       "sing": "D X 一刀 把你的流數 切成 碎片",
-       "show": "dx 一刀　把你的流數切成碎片",
+       "sing": "D X 一刀 把你的流数 切成 碎片",
+       "show": "dx 一刀　把你的流数切成碎片",
        "rhyme": "片"
       },
       {
-       "sing": "積分 一條S 把你的名聲 全部 收編",
-       "show": "積分一條 S　把你的名聲全部收編",
-       "rhyme": "編"
+       "sing": "积分 一条S 把你的名声 全部 收编",
+       "show": "积分一条 S　把你的名声全部收编",
+       "rhyme": "编"
       },
       {
-       "sing": "站在巨人肩上 今晚巨人 換我當",
-       "show": "站在巨人肩上　今晚巨人換我當",
-       "rhyme": "當"
+       "sing": "站在巨人肩上 今晚巨人 换我当",
+       "show": "站在巨人肩上　今晚巨人换我当",
+       "rhyme": "当"
       },
       {
-       "sing": "萊布尼茲 封王 一條積分 把你 全部埋葬",
-       "show": "萊布尼茲封王　一條積分把你全部埋葬",
+       "sing": "莱布尼兹 封王 一条积分 把你 全部埋葬",
+       "show": "莱布尼兹封王　一条积分把你全部埋葬",
        "rhyme": "埋葬"
       }
      ]
@@ -295,15 +295,15 @@
    ],
    "intro_card": [
     [
-     "萊布尼茲",
+     "莱布尼兹",
      120
     ],
     [
-     "德國 微積分符號發明人",
+     "德国 微积分符号发明人",
      54
     ],
     [
-     "外交官 哲學家",
+     "外交官 哲学家",
      42
     ]
    ],
@@ -312,8 +312,8 @@
   }
  },
  "dj": {
-  "name": "夏特萊侯爵夫人",
-  "short": "DJ 夏特萊",
+  "name": "夏特莱侯爵夫人",
+  "short": "DJ 夏特莱",
   "color": [
    236,
    226,
@@ -327,26 +327,26 @@
   "pronoun": "she",
   "look": "Emilie du Chatelet at about thirty-five as a hip-hop battle DJ: a real face with lively dark eyes and strong eyebrows, softly powdered light-grey hair pinned up with small curls, a HIGH-NECKED pale-gold silk 18th-century gown whose bodice is completely covered by white lace from the waist up to a high lace collar at the throat (no cleavage, no bare chest, no low neckline), a pearl necklace over the lace, and modern black over-ear DJ headphones",
   "desc": "Émilie du Châtelet, a lively thirty-five-year-old French woman scientist with softly powdered light-grey pinned-up hair, a pale-gold silk 18th-century gown with lace, a pearl necklace and modern black DJ headphones",
-  "voice_design": "一位三十多歲的女性擔任嘻哈擂台主持人，聲音明亮有力、自信俐落，帶點優雅和幽默，熱情激昂，音量大，語速中等偏快，台灣口音。",
-  "voice_sample": "數學史大擂台！微積分之戰！到底是誰先發明微積分？今晚見真章！準備好了嗎？",
+  "voice_design": "一位三十多岁的女性担任嘻哈擂台主持人，声音明亮有力、自信俐落，带点优雅和幽默，热情激昂，音量大，语速中等偏快，台湾口音。",
+  "voice_sample": "数学史大擂台！微积分之战！到底是谁先发明微积分？今晚见真章！准备好了吗？",
   "lines": {
-   "open": "數學史大擂台！微積分之戰！英國的牛頓，對上，德國的萊布尼茲！到底誰先發明微積分？開打！",
-   "switch": "被說是小偷？萊布尼茲，反擊的時間到了！上台！",
-   "verdict": "兩個天才吵了一輩子。其實，他們都是自己想出微積分的！",
-   "end": "誰贏了？下一場是誰？你決定！"
+   "open": "数学史大擂台！微积分之战！英国的牛顿，对上，德国的莱布尼兹！到底谁先发明微积分？开打！",
+   "switch": "被说是小偷？莱布尼兹，反击的时间到了！上台！",
+   "verdict": "两个天才吵了一辈子。其实，他们都是自己想出微积分的！",
+   "end": "谁赢了？下一场是谁？你决定！"
   },
   "end_beats": [
-   "誰贏了？",
-   "下一場是誰？",
-   "你決定！"
+   "谁赢了？",
+   "下一场是谁？",
+   "你决定！"
   ],
   "intro_card": [
    [
-    "夏特萊侯爵夫人",
+    "夏特莱侯爵夫人",
     104
    ],
    [
-    "法文版原理譯者",
+    "法文版原理译者",
     54
    ],
    [
@@ -451,15 +451,15 @@
    "size": 46,
    "lines": [
     [
-     "DJ｜夏特萊侯爵夫人",
+     "DJ｜夏特莱侯爵夫人",
      "ink"
     ],
     [
-     "法國數學家，把牛頓的《原理》翻成法文",
+     "法国数学家，把牛顿的《原理》翻成法文",
      "J"
     ],
     [
-     "物理挺牛頓、哲學挺萊布尼茲",
+     "物理挺牛顿、哲学挺莱布尼兹",
      "ink"
     ]
    ]
@@ -469,15 +469,15 @@
    "size": 46,
    "lines": [
     [
-     "1665・倫敦大瘟疫",
+     "1665・伦敦大瘟疫",
      "ink"
     ],
     [
-     "劍橋大學停課，牛頓回鄉下老家",
+     "剑桥大学停课，牛顿回乡下老家",
      "A"
     ],
     [
-     "兩年內想出微積分、萬有引力",
+     "两年内想出微积分、万有引力",
      "J"
     ]
    ]
@@ -487,11 +487,11 @@
    "size": 46,
    "lines": [
     [
-     "1687・《自然哲學的數學原理》",
+     "1687・《自然哲学的数学原理》",
      "ink"
     ],
     [
-     "三大運動定律＋萬有引力",
+     "三大运动定律＋万有引力",
      "A"
     ]
    ]
@@ -501,11 +501,11 @@
    "size": 46,
    "lines": [
     [
-     "英國皇家學會",
+     "英国皇家学会",
      "ink"
     ],
     [
-     "牛頓 1703 年起當會長，一當 24 年",
+     "牛顿 1703 年起当会长，一当 24 年",
      "A"
     ]
    ]
@@ -515,11 +515,11 @@
    "size": 46,
    "lines": [
     [
-     "1676・萊布尼茲到倫敦",
+     "1676・莱布尼兹到伦敦",
      "ink"
     ],
     [
-     "看過牛頓朋友手上的部分手稿",
+     "看过牛顿朋友手上的部分手稿",
      "A"
     ]
    ]
@@ -529,11 +529,11 @@
    "size": 46,
    "lines": [
     [
-     "1677・牛頓回信給萊布尼茲",
+     "1677・牛顿回信给莱布尼兹",
      "ink"
     ],
     [
-     "把關鍵方法寫成字母謎題，不讓人看懂",
+     "把关键方法写成字母谜题，不让人看懂",
      "A"
     ]
    ]
@@ -543,11 +543,11 @@
    "size": 46,
    "lines": [
     [
-     "1684・萊布尼茲先發表微分論文",
+     "1684・莱布尼兹先发表微分论文",
      "ink"
     ],
     [
-     "牛頓的流數法到 1704 年才正式出版",
+     "牛顿的流数法到 1704 年才正式出版",
      "B"
     ]
    ]
@@ -557,11 +557,11 @@
    "size": 46,
    "lines": [
     [
-     "今天課本用的符號都是萊布尼茲的",
+     "今天课本用的符号都是莱布尼兹的",
      "ink"
     ],
     [
-     "dx＝微分　∫＝積分（拉長的 S，總和）",
+     "dx＝微分　∫＝积分（拉长的 S，总和）",
      "B"
     ]
    ]
@@ -571,11 +571,11 @@
    "size": 46,
    "lines": [
     [
-     "牛頓的「點點」符號：字母頭上加一點",
+     "牛顿的「点点」符号：字母头上加一点",
      "ink"
     ],
     [
-     "英國死守 100 多年，數學落後歐陸",
+     "英国死守 100 多年，数学落后欧陆",
      "B"
     ]
    ]
@@ -585,11 +585,11 @@
    "size": 44,
    "lines": [
     [
-     "1712・皇家學會調查「誰先發明」",
+     "1712・皇家学会调查「谁先发明」",
      "ink"
     ],
     [
-     "判萊布尼茲抄襲，報告其實是會長牛頓寫的",
+     "判莱布尼兹抄袭，报告其实是会长牛顿写的",
      "B"
     ]
    ]
@@ -599,11 +599,11 @@
    "size": 46,
    "lines": [
     [
-     "1703・萊布尼茲發表二進位",
+     "1703・莱布尼兹发表二进位",
      "ink"
     ],
     [
-     "只用 0 和 1 ＝今天電腦的語言",
+     "只用 0 和 1 ＝今天电脑的语言",
      "B"
     ]
    ]
@@ -617,7 +617,7 @@
      "ink"
     ],
     [
-     "股票崩盤，牛頓賠了約 2 萬英鎊",
+     "股票崩盘，牛顿赔了约 2 万英镑",
      "B"
     ]
    ]
@@ -627,11 +627,11 @@
    "size": 46,
    "lines": [
     [
-     "牛頓也研究煉金術",
+     "牛顿也研究炼金术",
      "ink"
     ],
     [
-     "留下上百萬字的煉金筆記",
+     "留下上百万字的炼金笔记",
      "B"
     ]
    ]
@@ -641,19 +641,19 @@
    "size": 48,
    "lines": [
     [
-     "今天的定論",
+     "今天的定论",
      "ink"
     ],
     [
-     "牛頓、萊布尼茲各自獨立發明了微積分",
+     "牛顿、莱布尼兹各自独立发明了微积分",
      "J"
     ]
    ]
   }
  },
  "vote": {
-  "A": "挺牛頓打「蘋果」",
-  "B": "挺萊布尼茲打「dx」"
+  "A": "挺牛顿打「苹果」",
+  "B": "挺莱布尼兹打「dx」"
  },
  "show_replace": [
   [
@@ -689,8 +689,8 @@
    "dx"
   ],
   [
-   "一個零 一個一",
-   "一個 0 一個 1"
+   "一个零 一个一",
+   "一个 0 一个 1"
   ]
  ],
  "flash_scenes": [
@@ -710,7 +710,7 @@
   "V01",
   "W01"
  ],
- "crowd_sfx": "sfx/歡呼",
+ "crowd_sfx": "sfx/欢呼",
  "shots": [
   {
    "id": "W01",

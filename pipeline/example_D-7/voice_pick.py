@@ -1,5 +1,5 @@
-"""配音挑選（Voice venv）：每個候選（voice_cand/<id>_vx*／_bz*）→ 去頭尾靜音 → ASR 必須全對 → 對照 edge-tts 台灣國語參考音（voice_ref_tw/）
-算腔調距離＋「一聲不夠高」＋「升降方向反」扣分 → 挑最低分，寫 voice/<id>.wav 與 voice_state.json。報告 voice_pick.json。
+"""配音挑选（Voice venv）：每个候选（voice_cand/<id>_vx*／_bz*）→ 去头尾静音 → ASR 必须全对 → 对照 edge-tts 台湾国语参考音（voice_ref_tw/）
+算腔调距离＋「一声不够高」＋「升降方向反」扣分 → 挑最低分，写 voice/<id>.wav 与 voice_state.json。报告 voice_pick.json。
   C:/AI/Voice/venv/Scripts/python.exe voice_pick.py [ID ...]"""
 import sys, json, re, difflib
 from pathlib import Path
@@ -15,7 +15,7 @@ import voice_plan as P
 HERE = P.HERE; C = HERE / "voice_cand"; TRIM = C / "_trim"; TRIM.mkdir(exist_ok=True); OUT = HERE / "voice"; OUT.mkdir(exist_ok=True)
 t2s = OpenCC("t2s"); asr = WhisperModel("large-v3", device="cuda", compute_type="float16", download_root="C:/AI/Voice/models/whisper", local_files_only=True)
 TEXT = {l: t for l, _, t in P.LINES}; SPK = {l: s for l, s, _ in P.LINES}
-def norm(s): return re.sub(r"[\s，。？！、,.?!…—～~]", "", t2s.convert(s)).replace("周", "週").replace("断", "段").replace("烤", "考")   # 同音同調的辨識字錯不算
+def norm(s): return re.sub(r"[\s，。？！、,.?!…—～~]", "", t2s.convert(s)).replace("周", "周").replace("断", "段").replace("烤", "考")   # 同音同调的辨识字错不算
 
 
 def trim(p, out):
@@ -27,7 +27,7 @@ def trim(p, out):
 
 def score(lid, wav):
     text = P.TTS[lid]; chars, base, tones, sur = expected(text)
-    segs, _ = asr.transcribe(str(wav), language="zh", beam_size=5, initial_prompt="以下是繁體中文的普通話。", condition_on_previous_text=False)
+    segs, _ = asr.transcribe(str(wav), language="zh", beam_size=5, initial_prompt="以下是繁体中文的普通话。", condition_on_previous_text=False)
     heard = "".join(s.text for s in segs); asr_s = difflib.SequenceMatcher(None, norm(text), norm(heard)).ratio()
     Cc, Rc = contours(wav, base), contours(HERE / "voice_ref_tw" / f"{lid}.wav", base)
     d, t1def, per, wrongdir = [], 0.0, [], []
@@ -50,12 +50,12 @@ if __name__ == "__main__":
         rows = []
         for p in sorted(C.glob(f"{lid}_vx*.wav")) + sorted(C.glob(f"{lid}_bz*.wav")):
             tp = TRIM / p.name; dur = trim(p, tp)
-            if dur > 1.2 + len(norm(TEXT[lid])) / 2.2: continue        # 太慢／拖長的候選不要
+            if dur > 1.2 + len(norm(TEXT[lid])) / 2.2: continue        # 太慢／拖长的候选不要
             r = score(lid, tp); r.update(cand=p.name, file=str(tp), dur=round(dur, 2)); rows.append(r)
         rows.sort(key=lambda r: r["total"]); rep[lid] = rows
         print(f"\n{lid} {TEXT[lid]}", flush=True)
         for r in rows[:4]:
-            print(f"  {r['cand']:14s} total {r['total']:.2f} dist {r['mean_dist']:.2f} 一聲 {r['t1_deficit']:.1f} 方向反 {r['wrong_dir']} asr {r['asr']} {r['heard']}", flush=True)
+            print(f"  {r['cand']:14s} total {r['total']:.2f} dist {r['mean_dist']:.2f} 一声 {r['t1_deficit']:.1f} 方向反 {r['wrong_dir']} asr {r['asr']} {r['heard']}", flush=True)
         if rows:
             x, sr = sf.read(rows[0]["file"], dtype="float32"); sf.write(str(OUT / f"{lid}.wav"), x, sr, subtype="PCM_16")
             S[lid] = dict(speaker=SPK[lid], text=TEXT[lid], dur=rows[0]["dur"], pick=rows[0]["cand"], total=rows[0]["total"], asr=rows[0]["asr"])

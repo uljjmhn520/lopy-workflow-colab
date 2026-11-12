@@ -1,9 +1,9 @@
-"""安裝完成後的自我驗證：每個本地模型各跑一個小工作，不需要任何外部素材（聲音、圖片都自己生）。
-用 H3 venv 執行（ComfyUI 要先啟動：call configs\\profile.cmd → tools\\start_comfy.cmd）：
+"""安装完成后的自我验证：每个本地模型各跑一个小工作，不需要任何外部素材（声音、图片都自己生）。
+用 H3 venv 执行（ComfyUI 要先启动：call configs\\profile.cmd → tools\\start_comfy.cmd）：
   C:\\AI\\H3\\venv\\Scripts\\python.exe setup\\smoke_test.py [--quick]
-完整版 14 步；--quick 跳過 FlashVSR（13 步）。結果寫 setup\\smoke_out\\report.json，並印出跟 docs\\hardware.md 對照用的時間。
-流程：Breeze 設計聲音 → BreezyVoice 用它念台詞＋自動挑選 → VoxCPM2（備用引擎）→ faster-whisper 聽寫 → 聲調比對 → Qwen-Image 2.1 生首幀 → Qwen 附參考圖 →
-MiniMax Music 3 → BS-RoFormer 分離 → H3（DMAD 4 步，首幀＋配音當固定音軌）→ RTX VSR → FlashVSR"""
+完整版 14 步；--quick 跳过 FlashVSR（13 步）。结果写 setup\\smoke_out\\report.json，并印出跟 docs\\hardware.md 对照用的时间。
+流程：Breeze 设计声音 → BreezyVoice 用它念台词＋自动挑选 → VoxCPM2（备用引擎）→ faster-whisper 听写 → 声调比对 → Qwen-Image 2.1 生首帧 → Qwen 附参考图 →
+MiniMax Music 3 → BS-RoFormer 分离 → H3（DMAD 4 步，首帧＋配音当固定音轨）→ RTX VSR → FlashVSR"""
 import json
 import os
 import subprocess
@@ -12,7 +12,7 @@ import time
 import urllib.request
 import wave
 from pathlib import Path
-for _s in (sys.stdout, sys.stderr):                 # 中文輸出在非 UTF-8 主控台不變亂碼
+for _s in (sys.stdout, sys.stderr):                 # 中文输出在非 UTF-8 主控台不变乱码
     try:
         _s.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
@@ -29,7 +29,7 @@ SEP = os.environ.get("SEPARATOR", str(Path(PYV).parent / ("audio-separator.exe" 
 AI_ROOT = Path(os.environ.get("AI_ROOT", r"C:\AI"))   # install root (Linux/Colab e.g. /content/AI)
 HOST = os.environ.get("COMFY_HOST", "http://127.0.0.1:8188")
 QUICK = "--quick" in sys.argv
-LINE = "老師，考卷是熱的。"
+LINE = "老师，考卷是热的。"
 PROMPT = ("A cinematic film still from a Taiwanese coming-of-age movie, shot on Kodak Vision3 500T film with an anamorphic 50mm lens at f/2, medium close-up "
           "at eye level. Late-afternoon golden-hour sun pours in low through the classroom windows behind the subject, warm backlight with a glowing rim light, "
           "hazy air with visible dusty light beams, warm amber color grade. In a Taiwanese public elementary school classroom. In the foreground, a cheerful "
@@ -80,19 +80,19 @@ def step(name, cmd, expect=None, timeout=1800):
 def main():
     if not comfy_ok():
         sys.exit(f"ComfyUI not running at {HOST}: call configs\\profile.cmd, then tools\\start_comfy.cmd")
-    # --- 聲音（ComfyUI 先釋放顯存）
+    # --- 声音（ComfyUI 先释放显存）
     free_comfy()
     (OUT / "breeze.json").write_text(json.dumps(dict(out_dir="breeze", jobs=[dict(
-        name="design", text="大家好，我是阿福。今天天氣很好，我們一起去上課吧。",
+        name="design", text="大家好，我是阿福。今天天气很好，我们一起去上课吧。",
         instruction="A cheerful 12-year-old Taiwanese boy, bright and friendly, natural Taiwanese Mandarin accent.", seed=7)]), ensure_ascii=False), encoding="utf-8")
     ref = step("breeze_design", [PYB, str(T / "breeze_batch.py"), "breeze.json"], "breeze/design.wav")
     (OUT / "breeze_line.json").write_text(json.dumps(dict(out_dir="breeze", jobs=[dict(
         name="line", text=LINE, instruction="A cheerful 12-year-old Taiwanese boy, natural Taiwanese Mandarin accent, standard pronunciation.", seed=11)]),
         ensure_ascii=False), encoding="utf-8")
     tw = step("breeze_line", [PYB, str(T / "breeze_batch.py"), "breeze_line.json"], "breeze/line.wav")
-    # 台詞配音＝BreezyVoice：用設計好的聲音念台詞（3 個 seed），再自動挑（聽寫＋對照台灣國語參考音；這裡用 Breeze 那句當參考，不需連網）
+    # 台词配音＝BreezyVoice：用设计好的声音念台词（3 个 seed），再自动挑（听写＋对照台湾国语参考音；这里用 Breeze 那句当参考，不需连网）
     (OUT / "bv.json").write_text(json.dumps(dict(out_dir="bv", seeds=3, jobs=[dict(
-        name="line", text=LINE, ref_audio="breeze/design.wav", ref_text="大家好，我是阿福。今天天氣很好，我們一起去上課吧。", tw_ref="breeze/line.wav")]),
+        name="line", text=LINE, ref_audio="breeze/design.wav", ref_text="大家好，我是阿福。今天天气很好，我们一起去上课吧。", tw_ref="breeze/line.wav")]),
         ensure_ascii=False), encoding="utf-8")
     bv = step("breezyvoice", [PYBV, str(T / "breezyvoice_batch.py"), "bv.json"], "bv/cand/line_s1.wav") if ref else None
     if bv and tw:
@@ -103,14 +103,14 @@ def main():
         step("whisper", [PYV, str(T / "stt.py"), "--audio", str(line_wav), "--outdir", "stt"], "stt/transcript.txt")
     if line_wav and tw:
         step("pron_compare", [PYV, str(T / "pron_compare.py"), str(line_wav), "breeze/line.wav", LINE])
-    # --- 圖、音樂、影片（ComfyUI）
+    # --- 图、音乐、影片（ComfyUI）
     (OUT / "prompt.txt").write_text(PROMPT, encoding="utf-8")
     img = step("qwen_image", [PYH3, str(T / "gen_image.py"), "--prompt-file", "prompt.txt", "--seed", "5101", "--prefix", "smoke/first", "--out", "qwen"],
                lambda: newest(OUT / "qwen", {".png"}))
     if img:
         from PIL import Image
         im = Image.open(img).convert("RGB"); w, h = im.size
-        im.crop((int(w * 0.3), 0, int(w * 0.7), int(h * 0.75))).save(OUT / "ref_bust.png")      # 單張半身當參考圖（不要用多格定妝照）
+        im.crop((int(w * 0.3), 0, int(w * 0.7), int(h * 0.75))).save(OUT / "ref_bust.png")      # 单张半身当参考图（不要用多格定妆照）
         im.resize((1344, 768), Image.LANCZOS).save(OUT / "first.png")
         (OUT / "prompt_ref.txt").write_text("The boy in <image1> is the same boy: keep exactly his face and hair. " + PROMPT.replace("sits at his wooden desk facing the camera",
                                             "stands by the classroom window looking out"), encoding="utf-8")

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# GPU 排隊（〈連假後第一天〉起的標準版；〈D-7〉當時是手動逐步跑）。每 60 秒看一次：GPU 使用率 < 20% 且 ComfyUI 佇列是空的，連續 3 次才算空閒；
-# 空閒後請 ComfyUI 釋放顯存，再確認顯存 < 12GB（別的程式沒佔著）才開工。
-# 依序：配音候選（VoxCPM2＋edge 參考）→ Breeze 候選 → 挑音 →（等 frames_ok 檔，首幀審過才有）→ H3 出片。
-# 每步寫 queue.log；任一步失敗就停。
+# GPU 排队（〈连假后第一天〉起的标准版；〈D-7〉当时是手动逐步跑）。每 60 秒看一次：GPU 使用率 < 20% 且 ComfyUI 伫列是空的，连续 3 次才算空闲；
+# 空闲后请 ComfyUI 释放显存，再确认显存 < 12GB（别的程式没占著）才开工。
+# 依序：配音候选（VoxCPM2＋edge 参考）→ Breeze 候选 → 挑音 →（等 frames_ok 档，首帧审过才有）→ H3 出片。
+# 每步写 queue.log；任一步失败就停。
 cd "$(dirname "$0")"
 LOG=queue.log
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" | tee -a "$LOG"; }
@@ -16,7 +16,7 @@ comfy_busy() {
 }
 
 wait_gpu() {
-  say "等待 GPU 空閒（$1）"
+  say "等待 GPU 空闲（$1）"
   while true; do
     local ok=0
     while [ $ok -lt 3 ]; do
@@ -27,12 +27,12 @@ wait_gpu() {
     curl -s -X POST http://127.0.0.1:8188/free -H "Content-Type: application/json" -d '{"unload_models":true,"free_memory":true}' >/dev/null 2>&1
     sleep 15
     mem=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits | tr -d ' ')
-    if [ "$mem" -lt 12000 ]; then say "GPU 空閒（顯存 ${mem}MiB），開始：$1"; return; fi
-    say "使用率低但顯存仍被佔 ${mem}MiB，繼續等"
+    if [ "$mem" -lt 12000 ]; then say "GPU 空闲（显存 ${mem}MiB），开始：$1"; return; fi
+    say "使用率低但显存仍被占 ${mem}MiB，继续等"
   done
 }
 
-step() { local name=$1; shift; say "▶ $name"; "$@" >> "$name.log" 2>&1 || { say "✗ $name 失敗，見 $name.log"; exit 1; }; say "✓ $name"; }
+step() { local name=$1; shift; say "▶ $name"; "$@" >> "$name.log" 2>&1 || { say "✗ $name 失败，见 $name.log"; exit 1; }; say "✓ $name"; }
 
 if [ ! -f voice_state.json ]; then
   wait_gpu "配音"
@@ -41,7 +41,7 @@ if [ ! -f voice_state.json ]; then
   step pick "$VOICE" voice_pick.py
 fi
 while [ ! -f frames_ok ]; do sleep 60; done
-say "首幀已審過（frames_ok）"
+say "首帧已审过（frames_ok）"
 wait_gpu "H3"
 step gen1 "$H3PY" pipeline_gen.py
 say "QUEUE_DONE"

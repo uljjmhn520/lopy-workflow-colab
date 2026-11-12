@@ -1,4 +1,4 @@
-"""Headless Blender layouts for 〈拿下頭套的人〉. Source scene: 動畫版 classroom_anim_p1.blend (opened read-only, never saved over).
+"""Headless Blender layouts for 〈拿下头套的人〉. Source scene: 动画版 classroom_anim_p1.blend (opened read-only, never saved over).
 Run: blender.exe -b <classroom_anim_p1.blend> --python render_layouts.py -- camera_plan_v1.json <out_dir> [save_blend]
 Raw Blender renders have the window on the wrong side; the PNGs are mirrored afterwards by make_sheet.py (project rule:
 students face the board, windows on the students' left)."""

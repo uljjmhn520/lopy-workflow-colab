@@ -1,19 +1,19 @@
-# agent：讓 AI agent 接手製作
+# agent：让 AI agent 接手制作
 
-| 檔案 | 用途 |
+| 档案 | 用途 |
 |---|---|
-| `CLAUDE.md範本.md` | 專案入口範本，改名 `CLAUDE.md` 放專案根目錄 |
-| `skills/shanshiba-drama/` | 編劇技能（2026-10-23 更新）：九階段＋階段關卡、主題錨點、預設 9:16 劇本與鏡表格式、**生成前試映**（16 宮格分鏡草圖＋讀本，`tools/make_storyboard.py`、`tools/assemble_read.py`）、抓馬上位模式、審稿清單（改寫自 AI-drama-pound，MIT，見 NOTICE.md） |
-| `skills/blender-previs/` | Blender 預演技能：需求訪談、鏡位契約、布置圖規則、提示詞包、檢查清單 |
-| `skills/rap-battle/` | 饒舌對決技能（2026-10-28）：選題與對決設計、歌詞規則（押法混用、唱段像流行副歌、殺句、兩邊一起改、讀音）、生歌（**先問有沒有 Suno**，沒有才用 YuE2 14 版）、鏡表規格、逐秒自審表；成片交給 `pipeline/template_battle/` |
+| `CLAUDE.md范本.md` | 专案入口范本，改名 `CLAUDE.md` 放专案根目录 |
+| `skills/shanshiba-drama/` | 编剧技能（2026-10-23 更新）：九阶段＋阶段关卡、主题锚点、预设 9:16 剧本与镜表格式、**生成前试映**（16 宫格分镜草图＋读本，`tools/make_storyboard.py`、`tools/assemble_read.py`）、抓马上位模式、审稿清单（改写自 AI-drama-pound，MIT，见 NOTICE.md） |
+| `skills/blender-previs/` | Blender 预演技能：需求访谈、镜位契约、布置图规则、提示词包、检查清单 |
+| `skills/rap-battle/` | 饶舌对决技能（2026-10-28）：选题与对决设计、歌词规则（押法混用、唱段像流行副歌、杀句、两边一起改、读音）、生歌（**先问有没有 Suno**，没有才用 YuE2 14 版）、镜表规格、逐秒自审表；成片交给 `pipeline/template_battle/` |
 
-技能放到專案的 `.claude/skills/` 底下，Claude Code 會自動載入。
+技能放到专案的 `.claude/skills/` 底下，Claude Code 会自动载入。
 
-> ⚠️ `shanshiba-drama` 已在 2026-10-23 更新到原頻道現行版；`blender-previs` 寫於專案早期（2026-08～09），references 裡還有幾處舊說法，用的時候以 `docs/` 為準：
-> - 「Seedance 2.5、每段 30 秒」→ 本機 H3、單鏡 ≤12 秒、對話靠切鏡
-> - 「山獅霸」「角色資產/山獅霸/角色設定.md」→ 原頻道的例子，請換成你自己的角色設定檔
+> ⚠️ `shanshiba-drama` 已在 2026-10-23 更新到原频道现行版；`blender-previs` 写于专案早期（2026-08～09），references 里还有几处旧说法，用的时候以 `docs/` 为准：
+> - 「Seedance 2.5、每段 30 秒」→ 本机 H3、单镜 ≤12 秒、对话靠切镜
+> - 「山狮霸」「角色资产/山狮霸/角色设定.md」→ 原频道的例子，请换成你自己的角色设定档
 > - 「voice-clone 技能」→ BreezyVoice（`make_breezyvoice.cmd`）
-> - 首幀 → 本 repo 預設 Qwen-Image-Edit 2511 附定妝照（原頻道用雲端 Image 2.5）；定稿用 DMAD 4 步
-> - 「14 步＋EasyCache」→ 定稿不開 EasyCache
+> - 首帧 → 本 repo 预设 Qwen-Image-Edit 2511 附定妆照（原频道用云端 Image 2.5）；定稿用 DMAD 4 步
+> - 「14 步＋EasyCache」→ 定稿不开 EasyCache
 
-協作方法（知識庫分層、記憶、工作習慣）見 [docs/05_agent協作與知識庫.md](../docs/05_agent協作與知識庫.md)。
+协作方法（知识库分层、记忆、工作习惯）见 [docs/05_agent协作与知识库.md](../docs/05_agent协作与知识库.md)。

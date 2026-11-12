@@ -1,7 +1,7 @@
-"""逐鏡查「鏡頭內整體顏色漂移」（第 9 集：H3 偶爾在第 1–2 秒把布幕／天空的飽和度拉高，同一場前後鏡接不起來）。
-用法：python colordrift.py <集資料夾> [鏡號...] [--th 10]
-做法：每 0.5 秒取一格、縮成 64×36，算平均 RGB 與首幀的最大距離；超過門檻（預設 10，0–255 尺度）就列出。
-只看整體顏色，人物走動不太影響；出現距離大但畫面其實是切鏡或打燈的，要人看過再決定。"""
+"""逐镜查「镜头内整体颜色漂移」（第 9 集：H3 偶尔在第 1–2 秒把布幕／天空的饱和度拉高，同一场前后镜接不起来）。
+用法：python colordrift.py <集资料夹> [镜号...] [--th 10]
+做法：每 0.5 秒取一格、缩成 64×36，算平均 RGB 与首帧的最大距离；超过门槛（预设 10，0–255 尺度）就列出。
+只看整体颜色，人物走动不太影响；出现距离大但画面其实是切镜或打灯的，要人看过再决定。"""
 import argparse
 import subprocess
 from pathlib import Path
@@ -30,5 +30,5 @@ for k in ids:
     i = int(d.argmax())
     if d[i] >= a.th:
         bad += 1
-        print(f"{k} 漂移 {d[i]:.1f} @ {i / 2:.1f}s  首幀 RGB {m[0].round().astype(int).tolist()} → {m[i].round().astype(int).tolist()}")
-print(f"共 {len(ids)} 鏡，{bad} 鏡超過 {a.th}")
+        print(f"{k} 漂移 {d[i]:.1f} @ {i / 2:.1f}s  首帧 RGB {m[0].round().astype(int).tolist()} → {m[i].round().astype(int).tolist()}")
+print(f"共 {len(ids)} 镜，{bad} 镜超过 {a.th}")

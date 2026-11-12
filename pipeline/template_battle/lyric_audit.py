@@ -1,6 +1,6 @@
-"""全曲逐字聽寫稽核（〈向日葵之戰〉使用者 2026-11-04 抓到「吵到你」唱成「好當你」，對齊分數卻有 0.85）。
-對齊分數只代表時間對得上，不代表字唱對。每句人聲、混音各聽寫一次（不給提示），用拼音比（同音字不算錯），列出兩邊都對不上的字。
-用法：Voice venv python lyric_audit.py [A B]     輸出 out/song/lyric_audit_<A|B>.md"""
+"""全曲逐字听写稽核（〈向日葵之战〉使用者 2026-11-04 抓到「吵到你」唱成「好当你」，对齐分数却有 0.85）。
+对齐分数只代表时间对得上，不代表字唱对。每句人声、混音各听写一次（不给提示），用拼音比（同音字不算错），列出两边都对不上的字。
+用法：Voice venv python lyric_audit.py [A B]     输出 out/song/lyric_audit_<A|B>.md"""
 import json
 import os
 import re
@@ -26,7 +26,7 @@ def hear(x):
 
 
 def score(want, got):
-    """逐字拼音做最長共同子序列：回傳沒聽到的字。"""
+    """逐字拼音做最长共同子序列：回传没听到的字。"""
     a, b = lazy_pinyin(want), lazy_pinyin(got)
     d = np.zeros((len(a) + 1, len(b) + 1), int)
     for i, x in enumerate(a):
@@ -48,7 +48,7 @@ for who in sys.argv[1:] or ["A", "B"]:
     al = json.loads((HERE / "out" / "song" / f"align_{who}.json").read_text(encoding="utf-8"))
     mix, _ = librosa.load(al["song"], sr=16000, mono=True)
     voc, _ = librosa.load(al["vocals"], sr=16000, mono=True)
-    out = [f"# {who} 逐字聽寫稽核", "", "| 句 | 秒 | 歌詞 | 人聲聽寫 | 混音聽寫 | 兩邊都沒聽到的字 |", "|:--|:--|:--|:--|:--|:--|"]
+    out = [f"# {who} 逐字听写稽核", "", "| 句 | 秒 | 歌词 | 人声听写 | 混音听写 | 两边都没听到的字 |", "|:--|:--|:--|:--|:--|:--|"]
     bad = 0
     for i, r in enumerate(al["rows"]):
         want = NOTCH.sub("", cc.convert(r.get("text") or "".join(w.get("w", "") for w in r.get("words", []))))
@@ -59,4 +59,4 @@ for who in sys.argv[1:] or ["A", "B"]:
         bad += bool(both)
         out.append(f"| {i} | {r['start']:.1f} | {want} | {hv} | {hm} | {'**' + ''.join(both) + '**' if both else ''} |")
         print(i, round(r["start"], 1), want, "|", hv, "|", hm, "|", "".join(both), flush=True)
-    (HERE / "out" / "song" / f"lyric_audit_{who}.md").write_text("\n".join(out) + f"\n\n有疑問 {bad} 句。\n", encoding="utf-8")
+    (HERE / "out" / "song" / f"lyric_audit_{who}.md").write_text("\n".join(out) + f"\n\n有疑问 {bad} 句。\n", encoding="utf-8")

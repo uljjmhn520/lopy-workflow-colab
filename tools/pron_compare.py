@@ -1,23 +1,23 @@
-"""中文配音「對照標準台灣國語」腔調審核 — 2026-10-04 建立。
-pron_check.py 只看每字聲調的升降方向，抓不到「方向對但高低／力道不像台灣國語」的腔調（使用者聽到的港腔）。
-這支把候選配音和一段「標準台灣國語參考音」（同一句台詞，例如 zh-TW 標準語音念的）逐字對齊後，比對每個字的音高曲線形狀：
+"""中文配音「对照标准台湾国语」腔调审核 — 2026-10-04 建立。
+pron_check.py 只看每字声调的升降方向，抓不到「方向对但高低／力道不像台湾国语」的腔调（使用者听到的港腔）。
+这支把候选配音和一段「标准台湾国语参考音」（同一句台词，例如 zh-TW 标准语音念的）逐字对齐后，比对每个字的音高曲线形状：
 
-  1. 兩段音檔都用 MMS_FA 逐字對齊（pron_check.align）。
-  2. 每段各自換算半音（相對前後 3 字的區域中位數，抵消音域與整句下傾），每字取 10 點曲線。
-  3. 逐字距離 = 兩條曲線的 RMS 差（半音）；另比對字長比例（念太急或拖太長）。
-  4. 距離 > 門檻 的字標為「腔調偏」，門檻用「兩個台灣口音之間」的自然差距校準（本人真實錄音 vs 標準語音）。
+  1. 两段音档都用 MMS_FA 逐字对齐（pron_check.align）。
+  2. 每段各自换算半音（相对前后 3 字的区域中位数，抵消音域与整句下倾），每字取 10 点曲线。
+  3. 逐字距离 = 两条曲线的 RMS 差（半音）；另比对字长比例（念太急或拖太长）。
+  4. 距离 > 门槛 的字标为「腔调偏」，门槛用「两个台湾口音之间」的自然差距校准（本人真实录音 vs 标准语音）。
 
 用法（Voice venv）：
-  python C:\\AI\\tools\\pron_compare.py <候選.wav> <參考.wav> "台詞"     → 每字距離、偏掉的字、整句分數
+  python C:\\AI\\tools\\pron_compare.py <候选.wav> <参考.wav> "台词"     → 每字距离、偏掉的字、整句分数
   from pron_compare import compare
-參考音不放進影片，只當「答案卷」。"""
+参考音不放进影片，只当「答案卷」。"""
 import sys
 import numpy as np
 
 sys.path.insert(0, __import__("os").path.dirname(__import__("os").path.abspath(__file__)))
 from pron_check import expected, align, f0_track  # noqa: E402
 
-THRESH = 3.0      # 半音；校準後更新（見 C:\AI\tools\README.md 發音審核段）
+THRESH = 3.0      # 半音；校准后更新（见 C:\AI\tools\README.md 发音审核段）
 
 
 def contours(path, base):
@@ -31,7 +31,7 @@ def contours(path, base):
     for i, (a, b) in enumerate(spans):
         ref = np.nanmedian([c for c in cen[max(0, i - 3):i + 4] if not np.isnan(c)] or [0])
         pad = (b - a) * 0.06; sel = (t >= a + pad) & (t <= b - pad) & v
-        if sel.sum() < 3: sel = (t >= a) & (t <= b) & v          # 短字（如「急」）不要因為切頭尾而被跳過
+        if sel.sum() < 3: sel = (t >= a) & (t <= b) & v          # 短字（如「急」）不要因为切头尾而被跳过
         y = st[sel] - ref
         out.append((np.interp(np.linspace(0, 1, 10), np.linspace(0, 1, len(y)), y) if len(y) >= 3 else None, b - a))
     return out
@@ -49,7 +49,7 @@ def compare(cand, ref, text, thresh=THRESH):
         bad = d > thresh or ratio < 0.45 or ratio > 2.2
         rows.append(dict(char=ch, tone=tn, dist=round(d, 2), dur_ratio=round(ratio, 2), verdict="bad" if bad else "ok")); dists.append(d)
     bad = [r for r in rows if r["verdict"] == "bad"]
-    return dict(text=text, mean_dist=round(float(np.mean(dists)), 2) if dists else None, n=len(dists), bad=[f"{r['char']}({r['dist']}半音, 長度比{r['dur_ratio']})" for r in bad],
+    return dict(text=text, mean_dist=round(float(np.mean(dists)), 2) if dists else None, n=len(dists), bad=[f"{r['char']}({r['dist']}半音, 长度比{r['dur_ratio']})" for r in bad],
                 score=round(1 - len(bad) / max(1, len(dists)), 3), chars=rows)
 
 

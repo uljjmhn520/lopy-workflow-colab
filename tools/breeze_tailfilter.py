@@ -1,4 +1,4 @@
-"""Breeze TTS 2 常把句尾截斷：最後 60 ms 的最大振幅 / 全句峰值 > 0.05 的候選移到 cand_trunc/，不給挑選工具挑。
+"""Breeze TTS 2 常把句尾截断：最后 60 ms 的最大振幅 / 全句峰值 > 0.05 的候选移到 cand_trunc/，不给挑选工具挑。
 用法：python breeze_tailfilter.py bv6"""
 import shutil, sys
 from pathlib import Path

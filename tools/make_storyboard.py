@@ -1,13 +1,13 @@
-"""生成前試映（一）：16 宮格分鏡草圖。讀 preview/shots.json，每 16 鏡畫一張 4×4 直式草圖（OpenAI Image 2.5，tools/img25.py），
-多張同時生成；鏡號用 PIL 疊在每格左上角（不叫模型寫字，模型會寫錯）。只看故事順序與構圖，不附角色參考圖、不驗角色像不像。
-2026-10-23 由原頻道各片的 preview/make_storyboard.py 改成通用版（〈颱風假作業包〉27 鏡 2 張約 3 分鐘）。
+"""生成前试映（一）：16 宫格分镜草图。读 preview/shots.json，每 16 镜画一张 4×4 直式草图（OpenAI Image 2.5，tools/img25.py），
+多张同时生成；镜号用 PIL 叠在每格左上角（不叫模型写字，模型会写错）。只看故事顺序与构图，不附角色参考图、不验角色像不像。
+2026-10-23 由原频道各片的 preview/make_storyboard.py 改成通用版（〈台风假作业包〉27 镜 2 张约 3 分钟）。
 
-shots.json（跟 assemble_read.py 共用；說明見 agent/skills/shanshiba-drama/references/table-read.md）：
-  {"cast": "Characters (keep consistent across panels): ...",            # 角色外觀一句話（英文），每張草圖都帶
+shots.json（跟 assemble_read.py 共用；说明见 agent/skills/shanshiba-drama/references/table-read.md）：
+  {"cast": "Characters (keep consistent across panels): ...",            # 角色外观一句话（英文），每张草图都带
    "shots": [{"id": "S01", "sec": 3, "panel": "extreme close-up: ...", "lines": [...]}, ...],
-   "end_card": "頻道名"}                                                   # 有的話最後補一格空白片尾卡
-用法：python tools/make_storyboard.py <片資料夾>/preview/shots.json [--landscape]
-  → 同資料夾 storyboard_<k>.png（原圖）＋ storyboard_<k>_label.png（疊鏡號）；--landscape＝16:9 格子"""
+   "end_card": "频道名"}                                                   # 有的话最后补一格空白片尾卡
+用法：python tools/make_storyboard.py <片资料夹>/preview/shots.json [--landscape]
+  → 同资料夹 storyboard_<k>.png（原图）＋ storyboard_<k>_label.png（叠镜号）；--landscape＝16:9 格子"""
 import json
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -63,7 +63,7 @@ def main():
     with ThreadPoolExecutor(len(sheets)) as ex:
         for p in ex.map(lambda a: make(sp.parent, a[0] + 1, spec.get("cast", ""), a[1], landscape), enumerate(sheets)):
             print(p, flush=True)
-    print(f"{len(spec['shots'])} 鏡 → {len(sheets)} 張草圖。這是看節奏與構圖順序用的草圖，不是首幀。")
+    print(f"{len(spec['shots'])} 镜 → {len(sheets)} 张草图。这是看节奏与构图顺序用的草图，不是首帧。")
 
 
 if __name__ == "__main__":

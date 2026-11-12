@@ -1,4 +1,4 @@
-"""單句補候選（Voice venv）：python voice_more.py L01 6 14  → voice_cand/L01_vx6..13"""
+"""单句补候选（Voice venv）：python voice_more.py L01 6 14  → voice_cand/L01_vx6..13"""
 import sys
 from pathlib import Path
 import soundfile as sf, torch

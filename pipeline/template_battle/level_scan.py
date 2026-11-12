@@ -1,4 +1,4 @@
-"""全片音量掃描（使用者 2026-11-02 的標準）：濾掉 300 Hz 以下、單聲道，抓 50 毫秒低於 −42 dB 持續 0.1 秒以上、相鄰半秒掉 8 dB 以上的地方。用法：python level_scan.py [mix.wav] [開始秒 結束秒 每段秒]"""
+"""全片音量扫描（使用者 2026-11-02 的标准）：滤掉 300 Hz 以下、单声道，抓 50 毫秒低于 −42 dB 持续 0.1 秒以上、相邻半秒掉 8 dB 以上的地方。用法：python level_scan.py [mix.wav] [开始秒 结束秒 每段秒]"""
 import sys
 import numpy as np
 import scipy.signal as ss
@@ -23,7 +23,7 @@ while i < len(low):
         i = j
     else:
         i += 1
-print("長", round(len(x) / sr, 1), "破洞", holes)
+print("长", round(len(x) / sr, 1), "破洞", holes)
 q = int(0.5 * sr)
 s = np.array([db(x[i:i + q]) for i in range(0, len(x) - q, q)])
 print("掉 8 dB", [(round(k * 0.5, 1), round(float(s[k]), 1), round(float(s[k + 1]), 1)) for k in range(len(s) - 1) if s[k] - s[k + 1] >= 8])

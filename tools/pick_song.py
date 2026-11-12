@@ -1,7 +1,7 @@
-"""挑歌（YuE2／ACE-Step 唱詞歌）：量每首拍速，只留目標 BPM（YuE2 約一半會掉到 89 或跳 152），
-再用 BS-RoFormer 分人聲 → 歌詞強制對齊 → 逐句聽寫，依字對到的比例排序（整首直接聽寫會幻覺，不要用）。
-rap 的聽寫天生偏低（人工確認全對的 Suno 歌也只量到 0.63–0.70），最後一定要人聽。
-用法：<Voice venv>/python pick_song.py <輸出資料夾> <歌詞.txt> [--bpm 143.6]（歌詞可含 [Verse] 等段落標籤）→ <資料夾>/pick.json
+"""挑歌（YuE2／ACE-Step 唱词歌）：量每首拍速，只留目标 BPM（YuE2 约一半会掉到 89 或跳 152），
+再用 BS-RoFormer 分人声 → 歌词强制对齐 → 逐句听写，依字对到的比例排序（整首直接听写会幻觉，不要用）。
+rap 的听写天生偏低（人工确认全对的 Suno 歌也只量到 0.63–0.70），最后一定要人听。
+用法：<Voice venv>/python pick_song.py <输出资料夹> <歌词.txt> [--bpm 143.6]（歌词可含 [Verse] 等段落标签）→ <资料夹>/pick.json
 需要：Voice venv 的 faster-whisper、stable-ts、opencc、librosa、audio-separator（模型 model_bs_roformer_ep_317_sdr_12.9755.ckpt）。"""
 import re, os, sys, difflib, json
 from pathlib import Path
@@ -35,4 +35,4 @@ for f in sorted(d.glob("*.flac")):
     print(f.name, rep[f.name], flush=True)
 (d / "_tmp.wav").unlink(missing_ok=True)
 (d / "pick.json").write_text(json.dumps(dict(sorted(rep.items(), key=lambda kv: -kv[1]["char_ok"])), ensure_ascii=False, indent=1), encoding="utf-8")
-print("排序結果寫在", d / "pick.json")
+print("排序结果写在", d / "pick.json")

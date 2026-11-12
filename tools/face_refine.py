@@ -1,18 +1,18 @@
-"""遠景小臉精修（ComfyUI-H3-FaceRefine；2026-10-24 原頻道實測後定為交片前步驟）。
+"""远景小脸精修（ComfyUI-H3-FaceRefine；2026-10-24 原频道实测后定为交片前步骤）。
 
-⚠ 實測環境：ComfyUI 0.40、RTX 5090 32GB。本 repo 本機版預設 ComfyUI 0.37 缺 FaceRefine 用到的 `_denoise_mask_conds`，節點仍能跑但未實測（作者說可能出現格狀紋）→ 建議先升級 0.40；16GB 顯卡、Colab 未實測。安裝見 docs/06_安裝.md「遠景小臉精修」。
+⚠ 实测环境：ComfyUI 0.40、RTX 5090 32GB。本 repo 本机版预设 ComfyUI 0.37 缺 FaceRefine 用到的 `_denoise_mask_conds`，节点仍能跑但未实测（作者说可能出现格状纹）→ 建议先升级 0.40；16GB 显卡、Colab 未实测。安装见 docs/06_安装.md「远景小脸精修」。
 
-用法（H3 venv；或 face_refine.cmd 會先確保 ComfyUI 在跑）：
-  face_refine.py <鏡資料夾或 clip.mp4> --ref <角色定妝照.png> [--subject 角色key] [--select top_most] [--out 資料夾]
-  選項：--track（只追臉、看選到誰就停）  --force（臉 ≥ --max-px 也照修）  --max-px 50  --denoise 0.4  --index 0  --seed 42
-        --who "外觀描述"（shot.json 沒有 subjects 時必填）
+用法（H3 venv；或 face_refine.cmd 会先确保 ComfyUI 在跑）：
+  face_refine.py <镜资料夹或 clip.mp4> --ref <角色定妆照.png> [--subject 角色key] [--select top_most] [--out 资料夹]
+  选项：--track（只追脸、看选到谁就停）  --force（脸 ≥ --max-px 也照修）  --max-px 50  --denoise 0.4  --index 0  --seed 42
+        --who "外观描述"（shot.json 没有 subjects 时必填）
 
-流程：①追臉（6–9 秒）→ 報告臉高、存 preview.png（裁出來的臉）→ 臉平均高 ≥ --max-px 就停（大臉修了也看不出差，見
-2026-10-24 實測：70px 幾乎沒差、25–30px 明顯變清楚）；②逐格裁 512 → FL2VA 剪枝 int8＋fl2v turbo 8 步、er_sde、denoise 0.4
-（H3PerFrameDenoise 依臉大小調）、原片音軌鎖住對嘴 → 只把臉羽化貼回。每鏡約 30 秒。
-輸出（預設 <鏡資料夾>/facerefine/）：refined.mp4（原尺寸、原音）、preview.png、cropsin.mp4、cropsout.mp4、prompt.txt、report.json。
-注意：一次修一張臉；畫面有更大的路人臉時 --select top_most／left_most…（先 --track 確認）；有台詞要人看嘴型；之後照舊 RTX VSR 放大。
-實測（原頻道 3 鏡）：臉 25–30 px 從一團糊變成認得出本人、還修掉 H3 畫錯的眼鏡；70 px 幾乎沒差；不閃；嘴大致跟原音。
+流程：①追脸（6–9 秒）→ 报告脸高、存 preview.png（裁出来的脸）→ 脸平均高 ≥ --max-px 就停（大脸修了也看不出差，见
+2026-10-24 实测：70px 几乎没差、25–30px 明显变清楚）；②逐格裁 512 → FL2VA 剪枝 int8＋fl2v turbo 8 步、er_sde、denoise 0.4
+（H3PerFrameDenoise 依脸大小调）、原片音轨锁住对嘴 → 只把脸羽化贴回。每镜约 30 秒。
+输出（预设 <镜资料夹>/facerefine/）：refined.mp4（原尺寸、原音）、preview.png、cropsin.mp4、cropsout.mp4、prompt.txt、report.json。
+注意：一次修一张脸；画面有更大的路人脸时 --select top_most／left_most…（先 --track 确认）；有台词要人看嘴型；之后照旧 RTX VSR 放大。
+实测（原频道 3 镜）：脸 25–30 px 从一团糊变成认得出本人、还修掉 H3 画错的眼镜；70 px 几乎没差；不闪；嘴大致跟原音。
 """
 import argparse
 import json
@@ -51,7 +51,7 @@ def build_prompt(spec, subject_key, who, seconds):
     sub = next((s for s in subs if s.get("key") == subject_key), subs[0] if subs else None)
     desc = who or (sub["desc"] if sub else None)
     if not desc:
-        sys.exit("shot.json 沒有 subjects：請用 --who 給外觀描述")
+        sys.exit("shot.json 没有 subjects：请用 --who 给外观描述")
     shot = (spec.get("shots") or [{}])[0]
     act = shot.get("action", "").strip()
     lines = [d for d in shot.get("dialogue", []) if not sub or d.get("subject") == sub.get("key")]
@@ -103,7 +103,7 @@ def run(g, tag, out):
     e = h[pid]
     st = e.get("status", {})
     if st.get("status_str") != "success":
-        sys.exit("ComfyUI 失敗：" + json.dumps([m for m in st.get("messages", []) if m[0] == "execution_error"], ensure_ascii=False)[:2000])
+        sys.exit("ComfyUI 失败：" + json.dumps([m for m in st.get("messages", []) if m[0] == "execution_error"], ensure_ascii=False)[:2000])
     texts = {}
     for nid, o in e["outputs"].items():
         for v in (o.get("images") or []) + (o.get("videos") or []):
@@ -136,7 +136,7 @@ def main():
     try:
         ver = req("/system_stats")["system"].get("comfyui_version", "0")
         if tuple(int(x) for x in re.findall(r"\d+", ver)[:2]) < (0, 40):
-            print(f"[warn] ComfyUI {ver} < 0.40：FaceRefine 只在 0.40 實測過（見檔頭）", flush=True)
+            print(f"[warn] ComfyUI {ver} < 0.40：FaceRefine 只在 0.40 实测过（见档头）", flush=True)
     except Exception:
         pass
     p = Path(a.shot)
@@ -148,7 +148,7 @@ def main():
     tag = f"fr_{clip.parent.name}_{int(time.time())}"
     clip_name = stage(clip, f"{tag}.mp4")
 
-    # ① 追臉
+    # ① 追脸
     g = track_nodes(clip_name, a)
     save(g, "90", ["3", 0], tag, "cropsin")
     g["94"] = {"class_type": "PreviewAny", "inputs": {"source": ["3", 3]}}
@@ -158,15 +158,15 @@ def main():
     mh = re.search(r"face height\s+min=(\d+)px\s+mean=(\d+)px\s+max=(\d+)px", rep)
     mean_px = float(mh.group(2)) if mh else 0
     found = re.search(r"face=(\d+) \((\d+)%\)", rep)
-    print(f"[track] select={a.select} 臉高 平均 {mean_px:.0f}px（{mh.group(0) if mh else '?'}）偵測到 {found.group(2) if found else '?'}% 格；"
-          f"裁切預覽 {out / 'preview.png'}", flush=True)
+    print(f"[track] select={a.select} 脸高 平均 {mean_px:.0f}px（{mh.group(0) if mh else '?'}）侦测到 {found.group(2) if found else '?'}% 格；"
+          f"裁切预览 {out / 'preview.png'}", flush=True)
     if a.track:
         return
     if mean_px >= a.max_px and not a.force:
-        print(f"[skip] 臉平均 {mean_px:.0f}px ≥ {a.max_px:.0f}px：修了看不出差（要修加 --force）")
+        print(f"[skip] 脸平均 {mean_px:.0f}px ≥ {a.max_px:.0f}px：修了看不出差（要修加 --force）")
         return
     if not a.ref:
-        sys.exit("--ref 必填（角色定妝照）")
+        sys.exit("--ref 必填（角色定妆照）")
 
     # ② 精修
     dur = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(clip)],

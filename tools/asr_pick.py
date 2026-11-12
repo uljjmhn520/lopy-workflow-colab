@@ -1,6 +1,6 @@
-"""edge-tts 不能用時（2026-10-12 微軟回 403）的備用挑選：只用聽寫。
-每句候選（已先跑 breeze_tailfilter.py 去掉句尾截斷的）→ faster-whisper 聽寫 → 拼音（含聲調）和台詞相同才合格
-→ 合格者取長度最接近中位數的（避開太快／拖太長）→ 去頭尾靜音輸出 <out>/<name>.wav，結果寫 <out>/asr_picks.json。
+"""edge-tts 不能用时（2026-10-12 微软回 403）的备用挑选：只用听写。
+每句候选（已先跑 breeze_tailfilter.py 去掉句尾截断的）→ faster-whisper 听写 → 拼音（含声调）和台词相同才合格
+→ 合格者取长度最接近中位数的（避开太快／拖太长）→ 去头尾静音输出 <out>/<name>.wav，结果写 <out>/asr_picks.json。
 用法：C:\\AI\\Voice\\venv\\Scripts\\python.exe asr_pick.py jobs_v7_pick.json"""
 import json
 import re
@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, r"C:\AI\tools")
-import breezyvoice_pick as bp  # noqa: E402  (norm, write_trimmed, 聽寫模型設定)
+import breezyvoice_pick as bp  # noqa: E402  (norm, write_trimmed, 听写模型设定)
 from pypinyin import Style, lazy_pinyin  # noqa: E402
 import soundfile as sf  # noqa: E402
 from faster_whisper import WhisperModel  # noqa: E402
@@ -32,17 +32,17 @@ res = {}
 for j in J["jobs"]:
     name = j["name"]; want = py(j["text"]); rows = []
     for f in sorted((out / "cand").glob(f"{name}_s*.wav")):
-        segs, _ = m.transcribe(str(f), language="zh", initial_prompt="以下是繁體中文。")
+        segs, _ = m.transcribe(str(f), language="zh", initial_prompt="以下是繁体中文。")
         asr = "".join(s.text for s in segs).strip(); d = sf.info(str(f)).duration
         rows.append(dict(file=f.name, asr=asr, ok=py(asr) == want, dur=round(d, 2)))
-    if not rows:   # 2026-10-12：候選全被 breeze_tailfilter 判句尾截斷 → 不中斷整批，標記要多抽 seed
+    if not rows:   # 2026-10-12：候选全被 breeze_tailfilter 判句尾截断 → 不中断整批，标记要多抽 seed
         res[name] = dict(pick=None, n_ok=0, n=0, needs_review=True, cands=[])
-        print(f"[pick] {name} 無候選（全部句尾截斷，在 cand_trunc/）NEEDS_REVIEW → 加 seeds 重跑", flush=True)
+        print(f"[pick] {name} 无候选（全部句尾截断，在 cand_trunc/）NEEDS_REVIEW → 加 seeds 重跑", flush=True)
         continue
     good = [r for r in rows if r["ok"]]
     if good:
         med = sorted(r["dur"] for r in good)[len(good) // 2]
-        if J.get("pick") == "range":     # 語調起伏最大的（長度在中位數 0.75–1.35 倍內）
+        if J.get("pick") == "range":     # 语调起伏最大的（长度在中位数 0.75–1.35 倍内）
             ok2 = [r for r in good if 0.75 * med <= r["dur"] <= 1.35 * med] or good
             for r in ok2: r["range"] = f0_range(out / "cand" / r["file"])
             best = max(ok2, key=lambda r: r["range"])

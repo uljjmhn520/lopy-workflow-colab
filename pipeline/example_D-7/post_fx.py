@@ -1,5 +1,5 @@
-"""〈D-7〉後製素材：撕日曆字卡、咒印名片（欄內／全畫面）、手機聊天畫面、三分割調色。assemble.py 匯入。
-  python post_fx.py test   → post/test_*.png 樣張"""
+"""〈D-7〉后制素材：撕日历字卡、咒印名片（栏内／全画面）、手机聊天画面、三分割调色。assemble.py 汇入。
+  python post_fx.py test   → post/test_*.png 样张"""
 import math
 from functools import lru_cache
 from pathlib import Path
@@ -9,16 +9,16 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageChops
 HERE = Path(__file__).resolve().parent
 W, H = 1920, 1080
 KAI = "C:/Windows/Fonts/kaiu.ttf"; JH = "C:/Windows/Fonts/msjhbd.ttc"; JHR = "C:/Windows/Fonts/msjh.ttc"
-SEAL_DIR = HERE.parents[1] / "templates" / "seals"   # 原專案放在別支片的資料夾，這裡集中到 templates/seals
+SEAL_DIR = HERE.parents[1] / "templates" / "seals"   # 原专案放在别支片的资料夹，这里集中到 templates/seals
 SEALS = {"eye": SEAL_DIR / "SEAL_1_eye.png", "time": SEAL_DIR / "SEAL_2_time.png", "soul": SEAL_DIR / "SEAL_3_soul.png", "gold": SEAL_DIR / "seal_gold.png"}
 
 
 def ease(x): x = min(1.0, max(0.0, x)); return x * x * (3 - 2 * x)
 
 
-# ------------------------------------------------------------------ 三分割調色
+# ------------------------------------------------------------------ 三分割调色
 def grade_grey(fr, g):
-    """g=1 灰（還沒開始準備）、0 正常。fr float32 0–1。"""
+    """g=1 灰（还没开始准备）、0 正常。fr float32 0–1。"""
     if g <= 0: return fr
     lum = (fr * np.array([0.3, 0.59, 0.11], np.float32)).sum(-1, keepdims=True)
     grey = lum * np.array([0.92, 0.96, 1.04], np.float32) * 0.55
@@ -26,19 +26,19 @@ def grade_grey(fr, g):
 
 
 def grade_lit(fr, k):
-    """k 0–1：亮起來（暖、微亮）。"""
+    """k 0–1：亮起来（暖、微亮）。"""
     if k <= 0: return fr
     warm = np.clip(fr * np.array([1.08, 1.02, 0.92], np.float32) * 1.06, 0, 1)
     return fr * (1 - k) + warm * k
 
 
-# ------------------------------------------------------------------ 撕日曆字卡
+# ------------------------------------------------------------------ 撕日历字卡
 def _page(label, sub, w=760, h=860, red=(196, 32, 38)):
     im = Image.new("RGBA", (w, h), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
     d.rounded_rectangle((0, 0, w - 1, h - 1), 14, fill=(248, 244, 232, 255))
     d.rectangle((0, 0, w, 170), fill=red + (255,))
     for x in range(60, w - 40, 64): d.ellipse((x, 18, x + 22, 40), fill=(60, 20, 20, 255))
-    f1 = ImageFont.truetype(JH, 78); t = "段考倒數"; b = d.textbbox((0, 0), t, font=f1); d.text(((w - b[2]) / 2, 62), t, font=f1, fill=(255, 245, 230))
+    f1 = ImageFont.truetype(JH, 78); t = "段考倒数"; b = d.textbbox((0, 0), t, font=f1); d.text(((w - b[2]) / 2, 62), t, font=f1, fill=(255, 245, 230))
     f2 = ImageFont.truetype(JH, 300); b = d.textbbox((0, 0), label, font=f2); d.text(((w - (b[2] - b[0])) / 2 - b[0], 250), label, font=f2, fill=(40, 34, 30))
     if sub:
         f3 = ImageFont.truetype(JH, 70); b = d.textbbox((0, 0), sub, font=f3); d.text(((w - b[2]) / 2, 680), sub, font=f3, fill=red)
@@ -57,7 +57,7 @@ def _bg():
 
 
 def calendar_frame(t, dur, prev, label, sub=""):
-    """prev 那一頁從上方撕走、露出 label。t 秒。"""
+    """prev 那一页从上方撕走、露出 label。t 秒。"""
     bg = Image.fromarray((_bg() * 255).astype(np.uint8)).convert("RGBA")
     px, py = (W - 760) // 2, (H - 860) // 2 + 20
     sh = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(sh).rounded_rectangle((px + 18, py + 26, px + 778, py + 886), 14, fill=(0, 0, 0, 150))
@@ -75,7 +75,7 @@ def calendar_frame(t, dur, prev, label, sub=""):
         bg.alpha_composite(pg, (ox, oy))
     fade = min(1, t / 0.15, (dur - t) / 0.15)
     a = np.asarray(bg.convert("RGB"), np.float32) / 255 * max(0.0, fade)
-    s = 1 + 0.03 * t / dur                                     # 緩推
+    s = 1 + 0.03 * t / dur                                     # 缓推
     im = Image.fromarray((a * 255).astype(np.uint8)); cw, ch = W / s, H / s
     return np.asarray(im.crop(((W - cw) / 2, (H - ch) / 2, (W + cw) / 2, (H + ch) / 2)).resize((W, H), Image.BILINEAR), np.float32) / 255
 
@@ -106,7 +106,7 @@ def _blur(a, r): return np.asarray(Image.fromarray((a * 255).astype(np.uint8)).f
 
 
 def namecard(fr, t, dur, text, seal="eye", glow=(1.0, 0.62, 0.25), cols=2, size=None):
-    """fr：要蓋的畫面（欄或全畫面，float32 HxWx3）。t 從名片開始算。法陣淡入轉動、字逐字由光浮現、爆光、淡出。"""
+    """fr：要盖的画面（栏或全画面，float32 HxWx3）。t 从名片开始算。法阵淡入转动、字逐字由光浮现、爆光、淡出。"""
     h, w = fr.shape[:2]; size = size or int(min(w * 0.36, 230)); g = np.array(glow, np.float32)
     fade = ease(t / 0.3) * ease((dur - t) / 0.35)
     dim = 1 - 0.55 * fade; out = fr * dim
@@ -131,12 +131,12 @@ def namecard(fr, t, dur, text, seal="eye", glow=(1.0, 0.62, 0.25), cols=2, size=
     return np.clip(out, 0, 1)
 
 
-# ------------------------------------------------------------------ 手機聊天畫面（S10）
+# ------------------------------------------------------------------ 手机聊天画面（S10）
 def _rr(d, box, r, fill): d.rounded_rectangle(box, r, fill=fill)
 
 
 def phone_frame(t, dur):
-    """0–1.4s 聊天列表（遊戲群組 999+ 在最上面、小雯（1）在下面）→ 點小雯 → 聊天室：上週四 21:03、4 張筆記照片、「我就知道你會問。」"""
+    """0–1.4s 聊天列表（游戏群组 999+ 在最上面、小雯（1）在下面）→ 点小雯 → 聊天室：上周四 21:03、4 张笔记照片、「我就知道你会问。」"""
     bg = Image.fromarray((_bg() * 255 * 0.55).astype(np.uint8)).convert("RGBA")
     pw, ph = 600, 1040; px, py = (W - pw) // 2, (H - ph) // 2 + 30
     ph_im = Image.new("RGBA", (pw, ph), (0, 0, 0, 0)); d = ImageDraw.Draw(ph_im)
@@ -147,9 +147,9 @@ def phone_frame(t, dur):
     tap = 1.4
     if t < tap + 0.15:
         d.rectangle((sx, 80, pw - sx, 160), fill=(255, 255, 255)); d.text((48, 100), "聊天", font=f(40), fill=(20, 20, 20))
-        rows = [("遊戲群組", "【小胖】快上線！！！", "999+", (90, 160, 255)), ("小雯", "[照片]", "1", (255, 150, 180)),
-                ("阿福", "你晚餐吃什麼", "", (255, 200, 80)), ("班級群組", "老師：明天段考，早點睡", "", (120, 200, 140)),
-                ("媽媽", "記得帶便當盒回來", "", (200, 160, 220))]
+        rows = [("游戏群组", "【小胖】快上线！！！", "999+", (90, 160, 255)), ("小雯", "[照片]", "1", (255, 150, 180)),
+                ("阿福", "你晚餐吃什么", "", (255, 200, 80)), ("班级群组", "老师：明天段考，早点睡", "", (120, 200, 140)),
+                ("妈妈", "记得带便当盒回来", "", (200, 160, 220))]
         for i, (name, msg, badge, col) in enumerate(rows):
             y = 175 + i * 118
             if name == "小雯" and t > tap - 0.25: d.rectangle((sx, y - 8, pw - sx, y + 104), fill=(225, 230, 240))
@@ -163,7 +163,7 @@ def phone_frame(t, dur):
         d.rectangle((sx, 80, pw - sx, 160), fill=(255, 255, 255)); d.text((48, 100), "‹  小雯", font=f(40), fill=(20, 20, 20))
         d.rectangle((sx, 160, pw - sx, ph - sx), fill=(214, 226, 238))
         u = t - tap - 0.15
-        _rr(d, (pw / 2 - 110, 190, pw / 2 + 110, 236), 22, (170, 185, 200)); d.text((pw / 2 - 86, 196), "上週四 21:03", font=f(28), fill=(255, 255, 255))
+        _rr(d, (pw / 2 - 110, 190, pw / 2 + 110, 236), 22, (170, 185, 200)); d.text((pw / 2 - 86, 196), "上周四 21:03", font=f(28), fill=(255, 255, 255))
         rng = np.random.default_rng(4)
         for i in range(4):
             if u > 0.15 * i:
@@ -173,7 +173,7 @@ def phone_frame(t, dur):
                     if k % 3 == 1: d.line((x + 18, ly, x + 18 + rng.integers(60, 120), ly), fill=(255, 220, 60), width=10)
         if u > 0.8:
             d.ellipse((40, 790, 104, 854), fill=(255, 150, 180)); _rr(d, (122, 790, 520, 862), 30, (255, 255, 255))
-            d.text((148, 806), "我就知道你會問。", font=f(36), fill=(20, 20, 20))
+            d.text((148, 806), "我就知道你会问。", font=f(36), fill=(20, 20, 20))
             d.text((122, 870), "21:03", font=f(22, False), fill=(110, 120, 130))
     bg.alpha_composite(ph_im, (px, py))
     glow = Image.new("RGBA", (W, H), (0, 0, 0, 0)); ImageDraw.Draw(glow).rounded_rectangle((px - 30, py - 30, px + pw + 30, py + ph + 30), 80, fill=(150, 180, 255, 40))
@@ -183,7 +183,7 @@ def phone_frame(t, dur):
     return np.asarray(im, np.float32) / 255 * min(1, t / 0.12, (dur - t) / 0.12)
 
 
-# ------------------------------------------------------------------ 角落小字（時間）
+# ------------------------------------------------------------------ 角落小字（时间）
 def corner_text(fr, text, t, dur, big=False):
     im = Image.fromarray((fr * 255).astype(np.uint8)).convert("RGBA"); lay = Image.new("RGBA", im.size, (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
     a = int(255 * ease(t / 0.3) * ease((dur - t) / 0.3)); f = ImageFont.truetype(JH, 64 if big else 52)
@@ -195,11 +195,11 @@ if __name__ == "__main__":
     import sys
     (HERE / "post").mkdir(exist_ok=True)
     Image.fromarray((calendar_frame(0.5, 1.5, "D-8", "D-7") * 255).astype(np.uint8)).save(HERE / "post/test_cal_mid.png")
-    Image.fromarray((calendar_frame(1.2, 1.5, "D-1", "D-0", "段考當天") * 255).astype(np.uint8)).save(HERE / "post/test_cal_end.png")
+    Image.fromarray((calendar_frame(1.2, 1.5, "D-1", "D-0", "段考当天") * 255).astype(np.uint8)).save(HERE / "post/test_cal_end.png")
     col = np.asarray(Image.open(HERE / "first/P1a.png").convert("RGB").resize((640, 1120)).crop((0, 20, 640, 1100)), np.float32) / 255
-    Image.fromarray((namecard(col, 1.5, 2.6, "先知先覺") * 255).astype(np.uint8)).save(HERE / "post/test_nc_col.png")
+    Image.fromarray((namecard(col, 1.5, 2.6, "先知先觉") * 255).astype(np.uint8)).save(HERE / "post/test_nc_col.png")
     full = np.asarray(Image.open(HERE / "first/S20.png").convert("RGB").resize((W, H)), np.float32) / 255
-    Image.fromarray((namecard(full, 1.6, 2.6, "昨天才出好題", seal="gold", cols=3, size=210) * 255).astype(np.uint8)).save(HERE / "post/test_nc_full.png")
+    Image.fromarray((namecard(full, 1.6, 2.6, "昨天才出好题", seal="gold", cols=3, size=210) * 255).astype(np.uint8)).save(HERE / "post/test_nc_full.png")
     Image.fromarray((phone_frame(0.9, 4.2) * 255).astype(np.uint8)).save(HERE / "post/test_phone1.png")
     Image.fromarray((phone_frame(3.5, 4.2) * 255).astype(np.uint8)).save(HERE / "post/test_phone2.png")
     print("ok")

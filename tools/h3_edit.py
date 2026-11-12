@@ -18,7 +18,7 @@ edit.json:
   "seed": 1, "steps": 14, "size": [1344, 768]                         # optional
 }
 
-"recipe" (added 2026-11-01, 試行/H3社群候選對照_20261101): Alissonerdx LoRAs, run the way their author trained them -
+"recipe" (added 2026-11-01, 试行/H3社群候选对照_20261101): Alissonerdx LoRAs, run the way their author trained them -
 the whole source clip goes in as aligned guide frames (MiniMaxH3AddGuide at frame 0, not the native video reference) with the
 author's one-line prompt template; the LoRA is added automatically (strength 1.0, override with "lora"). Source audio is reused.
   "recipe": "body_swap"  -> minimax_h3_character_swap_v1.1_ref2va_fro (whole person: face, hair, body, clothes)

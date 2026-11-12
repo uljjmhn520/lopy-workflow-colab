@@ -32,13 +32,13 @@ EXCLUDED = {"US", "GB", "KR", "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "F
             "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE"}     # MiniMax H3 licence I.5: US, EU, UK, Republic of Korea
 FILE_KEYS = ["first_frame", "last_frame", "first_clip"]
 RETRY = ("Connection was lost", "Timeout waiting for reply", "Read timed out", "ConnectionError", "RemoteDisconnected",
-         "503 Server Error", "Service Unavailable", "502 Server Error")   # 2026-11-01：Colab kernel 偶爾回 503
+         "503 Server Error", "Service Unavailable", "502 Server Error")   # 2026-11-01：Colab kernel 偶尔回 503
 
 
 def colab_bin():
     b = shutil.which("colab")
     if not b:
-        sys.exit("找不到 colab 指令：先執行  uv tool install google-colab-cli  （Windows 再執行 python cloud/colab_cli_windows_patch.py）")
+        sys.exit("找不到 colab 指令：先执行  uv tool install google-colab-cli  （Windows 再执行 python cloud/colab_cli_windows_patch.py）")
     return b
 
 
@@ -53,12 +53,12 @@ def cx(args, inp=None, timeout=900, tries=4, check=True):
         except subprocess.TimeoutExpired:
             out = "Timeout waiting for reply (local timeout)"
         if "termios" in out:
-            sys.exit("Colab CLI 在 Windows 上壞掉（termios）：先執行  python cloud/colab_cli_windows_patch.py")
+            sys.exit("Colab CLI 在 Windows 上坏掉（termios）：先执行  python cloud/colab_cli_windows_patch.py")
         if not any(m in out for m in RETRY):
             break
         time.sleep(5 * (k + 1))
     if check and "Session not found" in out:
-        sys.exit("Colab 機器已經不在了（閒置約 20 分鐘會被收回）。重新執行 start。")
+        sys.exit("Colab 机器已经不在了（闲置约 20 分钟会被收回）。重新执行 start。")
     return out
 
 
@@ -82,13 +82,13 @@ def balance():
 
 
 def upload(name, local, remote, tries=4):
-    for k in range(tries):                                      # 2026-11-01〈人性之辯〉：96 MB 上傳被 ConnectionReset 中斷 → 重試
+    for k in range(tries):                                      # 2026-11-01〈人性之辩〉：96 MB 上传被 ConnectionReset 中断 → 重试
         out = cx(["upload", "-s", name, local, remote], timeout=1800)
         if "Uploaded" in out:
             return
-        print(f"[colab] 上傳失敗（第 {k + 1} 次），重試：{out.strip()[-160:]}", flush=True)
+        print(f"[colab] 上传失败（第 {k + 1} 次），重试：{out.strip()[-160:]}", flush=True)
         time.sleep(10 * (k + 1))
-    sys.exit(f"上傳失敗：{local}\n{out[-800:]}")
+    sys.exit(f"上传失败：{local}\n{out[-800:]}")
 
 
 def download(name, remote, local):
@@ -97,9 +97,9 @@ def download(name, remote, local):
         out = cx(["download", "-s", name, remote, local], timeout=3600)
         if "Downloaded" in out:
             return
-        print(f"[colab] 下載失敗（第 {k + 1} 次），重試：{out.strip()[-160:]}", flush=True)
+        print(f"[colab] 下载失败（第 {k + 1} 次），重试：{out.strip()[-160:]}", flush=True)
         time.sleep(10 * (k + 1))
-    sys.exit(f"下載失敗：{remote}\n{out[-800:]}")
+    sys.exit(f"下载失败：{remote}\n{out[-800:]}")
 
 
 def repo_bundle(full=False):
@@ -126,26 +126,26 @@ def poll(name, logfile, done, fail=("FAILED",), every=60, limit=7200, show=r"^\[
             return txt
         # smoke_test step lines ("FAIL <step> ... Traceback ...") are results, not a crash of the script being watched
         if any(f in l for l in lines if not re.match(r"(OK|FAIL)\s", l) for f in fail):
-            sys.exit(f"VM 上失敗了，看上面的訊息（完整記錄在 VM 的 {logfile}）")
+            sys.exit(f"VM 上失败了，看上面的讯息（完整记录在 VM 的 {logfile}）")
         time.sleep(every)
-    sys.exit(f"等太久（{limit // 60} 分鐘）還沒完成：{logfile}")
+    sys.exit(f"等太久（{limit // 60} 分钟）还没完成：{logfile}")
 
 
 def new_session(name, gpu):
     if alive(name):
         return False
-    print(f"[colab] 開一台 {gpu}（餘額 {balance()} 單元）…", flush=True)
+    print(f"[colab] 开一台 {gpu}（余额 {balance()} 单元）…", flush=True)
     out = cx(["new", "-s", name, "--gpu", gpu], timeout=600)
     if "rejected" in out.lower() or "Session READY" not in out:
-        sys.exit(f"開機失敗（這個帳號可能不能用 {gpu}）：\n{out[-600:]}")
+        sys.exit(f"开机失败（这个帐号可能不能用 {gpu}）：\n{out[-600:]}")
     reg = vm(name, "import json, urllib.request\ntry:\n  d = json.loads(urllib.request.urlopen('https://ipinfo.io/json', timeout=15).read())\n"
                    "  print('REGION', d.get('country'), d.get('city'))\nexcept Exception as e:\n  print('REGION ?', e)")
     m = re.search(r"REGION (\S+) ?(.*)", reg)
     cc = m.group(1) if m else "?"
-    print(f"[colab] 機房：{m.group(2).strip() if m else '?'}（{cc}）", flush=True)
+    print(f"[colab] 机房：{m.group(2).strip() if m else '?'}（{cc}）", flush=True)
     if cc in EXCLUDED:
-        print("  ⚠ 警語：這個機房在 MiniMax H3 授權排除的地區（美國／歐盟／英國／南韓）。授權沒有定義『使用』看人還是看機器，"
-              "照字面可能不在授權範圍內，風險由你自負（不是法律意見）。工具照常繼續；想避開可改用台灣或日本機房的雲端 GPU（見 cloud/README.md）。", flush=True)
+        print("  ⚠ 警语：这个机房在 MiniMax H3 授权排除的地区（美国／欧盟／英国／南韩）。授权没有定义『使用』看人还是看机器，"
+              "照字面可能不在授权范围内，风险由你自负（不是法律意见）。工具照常继续；想避开可改用台湾或日本机房的云端 GPU（见 cloud/README.md）。", flush=True)
     vm(name, "import os; os.makedirs('/content/repo', exist_ok=True); print('ok')")
     return True
 
@@ -155,17 +155,17 @@ def cmd_check(a):
     out = cx(["usage"], check=False)
     print(out.strip()[-400:])
     if "balance" not in out.lower():
-        print("→ 還沒登入：在終端機執行  colab usage  ，瀏覽器選有 Google AI 方案的帳號，把授權碼貼回終端機。")
+        print("→ 还没登入：在终端机执行  colab usage  ，浏览器选有 Google AI 方案的帐号，把授权码贴回终端机。")
 
 
 def cmd_start(a):
-    """預設＝完整安裝（等同第一份 repo 完整版：語音、生圖、配樂、H3、放大全部裝，約 10.5 分鐘、約 1.5 單元；使用者 2026-10-11 指定）。
-    --h3-only＝只裝 ComfyUI＋H3（約 3.7 分鐘），給「本機準備、雲端只跑 H3」與本機＋Colab 一起跑（hybrid_h3.py）用。"""
+    """预设＝完整安装（等同第一份 repo 完整版：语音、生图、配乐、H3、放大全部装，约 10.5 分钟、约 1.5 单元；使用者 2026-10-11 指定）。
+    --h3-only＝只装 ComfyUI＋H3（约 3.7 分钟），给「本机准备、云端只跑 H3」与本机＋Colab 一起跑（hybrid_h3.py）用。"""
     if not getattr(a, "h3_only", False):
         return cmd_full_setup(a)
     fresh = new_session(a.name, a.gpu)
     if not fresh and "SETUP_DONE" in vm(a.name, "import os\nprint(open('/content/setup_h3.log').read() if os.path.exists('/content/setup_h3.log') else '')"):
-        print("[colab] 已經準備好了（沿用這台）", flush=True)
+        print("[colab] 已经准备好了（沿用这台）", flush=True)
         return
     t0 = time.time()
     tgz = repo_bundle()
@@ -174,7 +174,7 @@ def cmd_start(a):
     vm_sh(a.name, f"cd /content && nohup python /content/repo/cloud/vm/setup_h3.py --instances {a.instances} --encoder {a.encoder} "
                   f"> /content/setup_h3.log 2>&1 &")
     poll(a.name, "/content/setup_h3.log", "SETUP_DONE", every=30)
-    print(f"[colab] 可以開始跑 H3 了（{time.time() - t0:.0f} 秒）。用完記得 stop。", flush=True)
+    print(f"[colab] 可以开始跑 H3 了（{time.time() - t0:.0f} 秒）。用完记得 stop。", flush=True)
 
 
 def files_in(spec):
@@ -228,18 +228,18 @@ def cmd_batch(a):
     with zipfile.ZipFile(zp, "w", zipfile.ZIP_DEFLATED) as z:
         for f in (tmp / batch).rglob("*"):
             z.write(f, f.relative_to(tmp).as_posix())
-    print(f"[batch] {len(jobs)} 鏡，上傳 {zp.stat().st_size / 1e6:.1f} MB …", flush=True)
+    print(f"[batch] {len(jobs)} 镜，上传 {zp.stat().st_size / 1e6:.1f} MB …", flush=True)
     vm_sh(a.name, "mkdir -p /content/jobs")
     upload(a.name, zp, f"/content/jobs/{batch}.zip")
     vm_sh(a.name, f"cd /content/jobs && python -c \"import zipfile; zipfile.ZipFile('{batch}.zip').extractall('.')\" && "
                   f"nohup python /content/repo/cloud/vm/run_batch.py {batch} > /content/jobs/{batch}.log 2>&1 &")
     t0 = time.time(); seen = 0
     while True:
-        time.sleep(int(os.environ.get("COLAB_POLL", "15")))     # 2026-10-11 實測：45 秒輪詢每批多耗損約 30 秒 → 預設 15
+        time.sleep(int(os.environ.get("COLAB_POLL", "15")))     # 2026-10-11 实测：45 秒轮询每批多耗损约 30 秒 → 预设 15
         txt = vm(a.name, f"import os\np='/content/jobs/{batch}/progress.jsonl'\nprint(open(p).read() if os.path.exists(p) else '')\n"
                          f"l='/content/jobs/{batch}.log'\nprint('LOGTAIL', open(l).read()[-800:] if os.path.exists(l) else '')")
-        if "LOGTAIL" not in txt:                                # 2026-11-01〈人性之辯〉：CLI 回 503 的錯誤文字含 Traceback，被誤判成 VM 批次出錯 → 中斷、成品沒下載
-            print(f"[batch] 查進度沒拿到回應（VM 上照常在跑），下一輪再查：{txt.strip()[-160:]}", flush=True)
+        if "LOGTAIL" not in txt:                                # 2026-11-01〈人性之辩〉：CLI 回 503 的错误文字含 Traceback，被误判成 VM 批次出错 → 中断、成品没下载
+            print(f"[batch] 查进度没拿到回应（VM 上照常在跑），下一轮再查：{txt.strip()[-160:]}", flush=True)
             continue
         ev = [json.loads(l) for l in txt.splitlines() if l.startswith("{")]
         for e in ev[seen:]:
@@ -249,7 +249,7 @@ def cmd_batch(a):
         if any(e["event"] == "DONE" for e in ev):
             break
         if "Traceback" in txt.split("LOGTAIL")[-1]:
-            sys.exit("VM 上的批次程式出錯：\n" + txt.split("LOGTAIL")[-1])
+            sys.exit("VM 上的批次程式出错：\n" + txt.split("LOGTAIL")[-1])
     done = [e for e in ev if e["event"] == "job"]
     lz = tmp / f"{batch}_out.zip"
     download(a.name, f"/content/jobs/{batch}_out.zip", lz)
@@ -260,7 +260,7 @@ def cmd_batch(a):
             dst.parent.mkdir(parents=True, exist_ok=True)
             dst.write_bytes(z.read(m))
     okn = sum(e["ok"] for e in done)
-    print(f"[batch] 完成 {okn}/{len(jobs)} 鏡，{time.time() - t0:.0f} 秒；成品已存回各 spec 旁邊。餘額 {balance()} 單元。", flush=True)
+    print(f"[batch] 完成 {okn}/{len(jobs)} 镜，{time.time() - t0:.0f} 秒；成品已存回各 spec 旁边。余额 {balance()} 单元。", flush=True)
     if a.stop_after:
         cmd_stop(a)
     if okn < len(jobs):
@@ -269,7 +269,7 @@ def cmd_batch(a):
 
 def cmd_keepalive(a):
     end = time.time() + a.minutes * 60
-    print(f"[colab] 保持連線 {a.minutes} 分鐘（這段時間照樣扣單元；Ctrl+C 結束）", flush=True)
+    print(f"[colab] 保持连线 {a.minutes} 分钟（这段时间照样扣单元；Ctrl+C 结束）", flush=True)
     while time.time() < end:
         vm(a.name, "print('ok')")
         time.sleep(240)
@@ -277,7 +277,7 @@ def cmd_keepalive(a):
 
 def cmd_stop(a):
     print(cx(["stop", "-s", a.name], check=False).strip()[-200:])
-    print(f"[colab] 餘額 {balance()} 單元", flush=True)
+    print(f"[colab] 余额 {balance()} 单元", flush=True)
 
 
 def cmd_status(a):
@@ -288,7 +288,7 @@ def cmd_status(a):
 def cmd_full_setup(a):
     fresh = new_session(a.name, a.gpu)
     if not fresh and '"full": true' in vm(a.name, "import os\nprint(open('/content/h3_state.json').read() if os.path.exists('/content/h3_state.json') else '')"):
-        print("[colab] 全套環境已經裝好了（沿用這台）", flush=True)
+        print("[colab] 全套环境已经装好了（沿用这台）", flush=True)
         return
     tgz = repo_bundle(full=True)
     upload(a.name, tgz, "/content/repo.tgz")
@@ -297,7 +297,7 @@ def cmd_full_setup(a):
                   "nohup bash /content/repo/cloud/vm/install_full.sh > /content/install_full.log 2>&1 &")
     poll(a.name, "/content/install_full.log", "FULL_DONE", every=60)
     vm_sh(a.name, "echo SETUP_DONE >> /content/setup_h3.log")      # batch/film can reuse this VM
-    print("[colab] 全套環境裝好了（之後可以用 smoke／film／batch）", flush=True)
+    print("[colab] 全套环境装好了（之后可以用 smoke／film／batch）", flush=True)
 
 
 VM_ENV = ("AI_ROOT=/content/AI AI_TOOLS=/content/repo/tools PY_H3=python PY_VOICE=/content/AI/Voice/venv/bin/python "
@@ -314,28 +314,28 @@ def cmd_smoke(a):
     dst = REPO / "setup" / "smoke_out_colab"
     download(a.name, "/content/repo/setup/smoke_out.zip", dst / "smoke_out.zip")
     zipfile.ZipFile(dst / "smoke_out.zip").extractall(dst)
-    print(f"[smoke] 結果在 {dst}（report.json、h3/clip.mp4…）", flush=True)
+    print(f"[smoke] 结果在 {dst}（report.json、h3/clip.mp4…）", flush=True)
 
 
 def cmd_film(a):
     """Full-cloud make_film.py (or make_battle.py when the folder has battle.json): upload the folder, run the given stages on the VM, bring out/ back."""
     fd = Path(a.film_dir).resolve()
     rel = fd.relative_to(REPO).as_posix()
-    battle = (fd / "battle.json").exists()                   # 對決範本：make_battle.py 要用 Voice venv 跑（librosa、stable-ts、opencc 在那裡）
+    battle = (fd / "battle.json").exists()                   # 对决范本：make_battle.py 要用 Voice venv 跑（librosa、stable-ts、opencc 在那里）
     script = "/content/AI/Voice/venv/bin/python make_battle.py" if battle else "python make_film.py"
-    # 本機設的 ONLY／ALLOW_REVIEW／UPSCALE 也帶到 VM（make_film.py 用它們重做指定鏡頭、放行審查）；--env KEY=VALUE 可再加
-    # OPENAI_API_KEY 也自動帶（對決範本 image_backend=img25 在 VM 上畫圖要用），印出來時遮掉
+    # 本机设的 ONLY／ALLOW_REVIEW／UPSCALE 也带到 VM（make_film.py 用它们重做指定镜头、放行审查）；--env KEY=VALUE 可再加
+    # OPENAI_API_KEY 也自动带（对决范本 image_backend=img25 在 VM 上画图要用），印出来时遮掉
     extra = [f"{k}={os.environ[k]}" for k in ("ONLY", "ALLOW_REVIEW", "UPSCALE", "OPENAI_API_KEY") if os.environ.get(k)] + list(a.env)
     for kv in extra:
         if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=[^'\"]*", kv):
-            sys.exit(f"--env 格式要 KEY=VALUE（不能有引號）：{kv}")
+            sys.exit(f"--env 格式要 KEY=VALUE（不能有引号）：{kv}")
     env = VM_ENV + "".join(f" {k}='{v}'" for k, v in (kv.split("=", 1) for kv in extra))
     if extra:
         shown = [kv.split("=", 1)[0] + "=***" if re.search(r"KEY|TOKEN|SECRET", kv.split("=", 1)[0]) else kv for kv in extra]
-        print(f"[film] 帶到 VM 的設定：{' '.join(shown)}", flush=True)
-    # out/ 只上傳 VM 上沒有、或大小不同的檔：上一段 film 同步回來的 out/（YuE2 歌、首幀、H3 片段）VM 上本來就有，
-    # 整包重傳會到幾百 MB，Colab 上傳常被斷線（2026-10-29 實測 380 MB 失敗）。out/ 以外（設定、程式、歌）每次都傳——
-    # 只比大小會漏掉「改了但長度一樣」的 battle.json（同日實測）
+        print(f"[film] 带到 VM 的设定：{' '.join(shown)}", flush=True)
+    # out/ 只上传 VM 上没有、或大小不同的档：上一段 film 同步回来的 out/（YuE2 歌、首帧、H3 片段）VM 上本来就有，
+    # 整包重传会到几百 MB，Colab 上传常被断线（2026-10-29 实测 380 MB 失败）。out/ 以外（设定、程式、歌）每次都传——
+    # 只比大小会漏掉「改了但长度一样」的 battle.json（同日实测）
     try:
         have = json.loads(vm(a.name, f"import json, os\nd = '/content/repo/{rel}'\nprint(json.dumps({{os.path.relpath(os.path.join(r, f), d).replace(os.sep, '/'): "
                                      f"os.path.getsize(os.path.join(r, f)) for r, _, fs in os.walk(d) for f in fs}}))").strip().splitlines()[-1])
@@ -350,7 +350,7 @@ def cmd_film(a):
                 if r.startswith("out/") and have.get(r) == f.stat().st_size:
                     n_skip += 1; continue
                 z.write(f, r)
-    print(f"[film] 上傳 {rel}（{tmp.stat().st_size / 1e6:.1f} MB；VM 上已有的 {n_skip} 個檔跳過）…", flush=True)
+    print(f"[film] 上传 {rel}（{tmp.stat().st_size / 1e6:.1f} MB；VM 上已有的 {n_skip} 个档跳过）…", flush=True)
     upload(a.name, tmp, "/content/film.zip")
     vm_sh(a.name, f"mkdir -p /content/repo/{rel} && cd /content/repo/{rel} && python -c \"import zipfile; zipfile.ZipFile('/content/film.zip').extractall('.')\""
                   f" && nohup sh -c 'env {env.replace("'", "'" + chr(92) + "''")} {script} {' '.join(a.stages)} > /content/film.log 2>&1; echo FILM_EXIT $? >> /content/film.log'"
@@ -360,7 +360,7 @@ def cmd_film(a):
     lz = Path(tempfile.mkdtemp()) / "film_out.zip"
     download(a.name, "/content/film_out.zip", lz)
     zipfile.ZipFile(lz).extractall(fd / "out")
-    print(f"[film] out/ 已同步回 {fd / 'out'}；人工檢查後再跑下一段 stage。", flush=True)
+    print(f"[film] out/ 已同步回 {fd / 'out'}；人工检查后再跑下一段 stage。", flush=True)
 
 
 def main():

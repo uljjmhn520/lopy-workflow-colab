@@ -1,6 +1,6 @@
-"""〈D-7〉首幀：python gen_frames.py [ids...] [--force]。Image 2.5（medium、n=1），3 路並行。
-輸出 first/<id>.png（舊圖移到 first/old/）。教室鏡構圖依 blender/layouts/L_<id>.png（已鏡射：窗在學生左手邊）。
-直式三分割小格（P*/N*）用 768x1344。先跑房間母版 ROOM_AH ROOM_XW，再跑用到它們的鏡頭。"""
+"""〈D-7〉首帧：python gen_frames.py [ids...] [--force]。Image 2.5（medium、n=1），3 路并行。
+输出 first/<id>.png（旧图移到 first/old/）。教室镜构图依 blender/layouts/L_<id>.png（已镜射：窗在学生左手边）。
+直式三分割小格（P*/N*）用 768x1344。先跑房间母版 ROOM_AH ROOM_XW，再跑用到它们的镜头。"""
 import shutil
 import sys
 import time
@@ -12,14 +12,14 @@ import img25
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-CH = ROOT / "角色資產/老師這次換你"
+CH = ROOT / "角色资产/老师这次换你"
 OUT = HERE / "first"; OLD = OUT / "old"
 OUT.mkdir(exist_ok=True); OLD.mkdir(exist_ok=True)
 FORCE = "--force" in sys.argv
 PORTRAIT = "768x1344"
 
-REF = {"T": CH / "老師_山獅霸/01_定妝照.png", "XW": CH / "班長小雯/01_定妝照.png", "AH": CH / "阿禾/01_定妝照.png",
-       "AF": CH / "阿福/01_定妝照.png", "RB": CH / "教室/從後方.png", "RF": CH / "教室/從前方.png",
+REF = {"T": CH / "老师_山狮霸/01_定妆照.png", "XW": CH / "班长小雯/01_定妆照.png", "AH": CH / "阿禾/01_定妆照.png",
+       "AF": CH / "阿福/01_定妆照.png", "RB": CH / "教室/从后方.png", "RF": CH / "教室/从前方.png",
        "RAH": OUT / "ROOM_AH.png", "RXW": OUT / "ROOM_XW.png"}
 KEEP = {
     "T": "Keep EXACTLY the same man as Image {n} (the teacher): black rectangular glasses, plain solid tawny cougar-head fabric hood with rounded ears worn on his head (a lifeless prop, no stripes, no spots, no mane), black zip jacket with red lining, white T-shirt. ",
@@ -61,7 +61,7 @@ SHOTS = {
     "ROOM_XW": ([], L_LAMP, "A very neat, tidy Taiwanese 11-year-old girl's bedroom at night, empty, no people: a clean study desk with a desk lamp switched "
                 "on, pens arranged in a cup, a colourful study-plan chart with a grid of little coloured squares pinned on the wall above the desk, a single "
                 "bed with a neatly tucked pastel-pink blanket, a few soft toys on a shelf.", {}),
-    # ---------------- 1 D-7 下課
+    # ---------------- 1 D-7 下课
     "S01": (["T", "XW", "AH", "AF", "RB"], L_RECESS,
             "Wide shot from the back corner of the classroom during recess (break time), the room lively: students chat in small groups at their desks. "
             "Front row: Ahe at the middle desk folding a paper airplane; Afu one row behind him on the window side opening a bag of snacks; Xiaowen at "
@@ -89,7 +89,7 @@ SHOTS = {
     "P1c": (["AF"], L_DINNER,
             "Vertical portrait framing, waist up. In the evening at home Afu sits at the dining table holding a huge bowl of rice heaped with food, "
             "chopsticks in hand, cheeks full, blissfully happy.", {"size": PORTRAIT, "home": True}),
-    # ---------------- 3 D-1 放學
+    # ---------------- 3 D-1 放学
     "S05": (["T", "RF"], L_DUSK,
             "Medium shot, after school: the teacher sits behind the teacher's desk at the front of the classroom, the chalkboard behind him. An open "
             "laptop stands on the desk, angled so its bright, completely BLANK white screen is partly visible to the camera; the white glow lights his "
@@ -107,7 +107,7 @@ SHOTS = {
     "N2c": (["AF", "RF"], L_DUSK,
             "Vertical portrait framing, waist up. After school in the classroom, Afu happily licks a popsicle while lazily slinging his backpack over "
             "one shoulder, carefree.", {"size": PORTRAIT, "school": True}),
-    # ---------------- 4 阿禾房間 深夜
+    # ---------------- 4 阿禾房间 深夜
     "S07": (["AH", "RAH"], L_LAMP,
             "Medium shot at night in Ahe's bedroom: Ahe sits at his study desk facing the camera, a huge messy tower of textbooks and handouts piled "
             "in front of him under the desk lamp. He is taking a deep breath, pushing up the sleeve of his T-shirt, determined.", {"home": True}),
@@ -132,7 +132,7 @@ SHOTS = {
     "P3c": (["AF"], L_MOON,
             "Vertical portrait framing. Late at night Afu sleeps deeply on his side in bed hugging a big pillow, mouth open with a little drool, "
             "a peaceful happy face, dark bedroom.", {"size": PORTRAIT, "home": True}),
-    # ---------------- 6 D-0 早自習
+    # ---------------- 6 D-0 早自习
     "S12": (["XW", "AH", "AF", "RF"], L_MORN,
             "Front view from the teacher's desk toward the front rows on an early exam morning, classmates seated quietly at their desks. Xiaowen sits "
             "in the LEFT third at her front-row desk, sharpening a pencil with a small handheld sharpener, five sharpened pencils lined up perfectly on "

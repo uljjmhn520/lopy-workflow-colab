@@ -1,4 +1,4 @@
-"""在候選上疊 S04 下課環境音（SNR 8/4 dB）跑 ASR，看「考」是否仍聽得出來。python voice_robust.py L01 L05"""
+"""在候选上叠 S04 下课环境音（SNR 8/4 dB）跑 ASR，看「考」是否仍听得出来。python voice_robust.py L01 L05"""
 import sys, json, re, subprocess
 from pathlib import Path
 import numpy as np, soundfile as sf
@@ -19,7 +19,7 @@ for lid in sys.argv[1:]:
         for snr in (8, 4):
             n = amb[:len(x)] if len(amb) >= len(x) else np.resize(amb, len(x))
             y = x + n * np.sqrt((x ** 2).mean() / ((n ** 2).mean() + 1e-9)) / (10 ** (snr / 20))
-            segs, _ = asr.transcribe(y, language="zh", beam_size=5, initial_prompt="以下是繁體中文的普通話。", condition_on_previous_text=False)
+            segs, _ = asr.transcribe(y, language="zh", beam_size=5, initial_prompt="以下是繁体中文的普通话。", condition_on_previous_text=False)
             hs.append("".join(s.text for s in segs))
         ok = all(("考" in h or "烤" in h) for h in hs)
         print(f"  {row['cand']:12s} total {row['total']:.2f} asr {row['asr']} {'OK ' if ok else 'BAD'} {hs}", flush=True)

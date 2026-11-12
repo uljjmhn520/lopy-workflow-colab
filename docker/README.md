@@ -1,6 +1,6 @@
 # Lopy-Workflow 本地配音 Docker 环境指南
 
-本项目提供一体化的本地 Docker 容器化方案，封装了 **BreezyVoice-300M (台灣國語/標準中文 TTS)**、**Faster-Whisper large-v3 (ASR 挑音)**、**G2PW (注音/拼音分析)** 与 **Edge-TTS (对比基准)**。
+本项目提供一体化的本地 Docker 容器化方案，封装了 **BreezyVoice-300M (台湾国语/标准中文 TTS)**、**Faster-Whisper large-v3 (ASR 挑音)**、**G2PW (注音/拼音分析)** 与 **Edge-TTS (对比基准)**。
 
 ---
 

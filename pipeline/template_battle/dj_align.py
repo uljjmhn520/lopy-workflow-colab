@@ -1,5 +1,5 @@
-"""DJ 口白逐字對齊：out/voice/ming/dj_<key>.wav ＋ battle.json 文字 → out/voice/ming/dj_align.json（{key: [[字, 開始, 結束], …]}）。
-鏡頭切點（setup_shots.py 的 djt）與 DJ 字幕都用它；換了口白檔要重跑（使用者 2026-11-04：插入鏡要對到口白正在講的事）。
+"""DJ 口白逐字对齐：out/voice/ming/dj_<key>.wav ＋ battle.json 文字 → out/voice/ming/dj_align.json（{key: [[字, 开始, 结束], …]}）。
+镜头切点（setup_shots.py 的 djt）与 DJ 字幕都用它；换了口白档要重跑（使用者 2026-11-04：插入镜要对到口白正在讲的事）。
 用法（Voice venv）：python dj_align.py"""
 import json
 import os

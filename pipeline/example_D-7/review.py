@@ -1,12 +1,12 @@
-"""〈D-7〉自審五遍（專案規則：答案索引 §6＋使用者常退件清單 feedback_auto_recurring_checks）。
+"""〈D-7〉自审五遍（专案规则：答案索引 §6＋使用者常退件清单 feedback_auto_recurring_checks）。
   C:/AI/H3/venv/Scripts/python.exe review.py <cut.mp4>          pass 1/3/4/5
-  C:/AI/Voice/venv/Scripts/python.exe review.py <cut.mp4> --asr  pass 2（語音轉文字比對台詞）
-輸出 review/<cut>_*.jpg 與 review/<cut>_review.json。自動數字只是警示，pass 1／5 的圖一定要逐張人工看。
- 1 逐鏡抽格（每鏡 4 格，原尺寸 1/3）：鏡頭漂移、多出人、臉換人、多手多腳、手沒動、背景亂動、老師碰學生、學生方向
- 2 ASR：每句台詞在成片中的實際內容（字錯、被切）
- 3 雜訊：H3 片段色度雜訊 > 0.54 且比首幀高 25% 以上才警告（畫面本身細節多不算）
- 4 黑畫面、定格（連續 >0.8 秒幾乎不動）、整體響度
- 5 切點前後對照＋接點明暗差（>12 警告）＋字幕重疊"""
+  C:/AI/Voice/venv/Scripts/python.exe review.py <cut.mp4> --asr  pass 2（语音转文字比对台词）
+输出 review/<cut>_*.jpg 与 review/<cut>_review.json。自动数字只是警示，pass 1／5 的图一定要逐张人工看。
+ 1 逐镜抽格（每镜 4 格，原尺寸 1/3）：镜头漂移、多出人、脸换人、多手多脚、手没动、背景乱动、老师碰学生、学生方向
+ 2 ASR：每句台词在成片中的实际内容（字错、被切）
+ 3 杂讯：H3 片段色度杂讯 > 0.54 且比首帧高 25% 以上才警告（画面本身细节多不算）
+ 4 黑画面、定格（连续 >0.8 秒几乎不动）、整体响度
+ 5 切点前后对照＋接点明暗差（>12 警告）＋字幕重叠"""
 import json, re, subprocess, sys
 from pathlib import Path
 import numpy as np
@@ -49,20 +49,20 @@ if "--asr" in sys.argv:
             wav = RV / "_seg.wav"
             subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-ss", f"{max(0, st - 0.3):.2f}", "-t", f"{l['end'] - l['start'] + 0.8:.2f}", "-i", str(cut),
                             "-ar", "16000", "-ac", "1", str(wav)])
-            segs, _ = asr.transcribe(str(wav), language="zh", beam_size=5, initial_prompt="以下是繁體中文的普通話。", condition_on_previous_text=False)
+            segs, _ = asr.transcribe(str(wav), language="zh", beam_size=5, initial_prompt="以下是繁体中文的普通话。", condition_on_previous_text=False)
             h = "".join(s.text for s in segs); sc = difflib.SequenceMatcher(None, norm(l["text"]), norm(h)).ratio()
             res.append(dict(shot=k, line=l["text"], heard=h, score=round(sc, 2))); print(k, round(sc, 2), l["text"], "→", h, flush=True)
     for lid, t0 in VT.items():
         wav = RV / "_seg.wav"; d = VS[lid]["dur"]
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-ss", f"{max(0, t0 - 0.2):.2f}", "-t", f"{d + 0.5:.2f}", "-i", str(cut), "-ar", "16000", "-ac", "1", str(wav)])
-        segs, _ = asr.transcribe(str(wav), language="zh", beam_size=5, initial_prompt="以下是繁體中文的普通話。", condition_on_previous_text=False)
+        segs, _ = asr.transcribe(str(wav), language="zh", beam_size=5, initial_prompt="以下是繁体中文的普通话。", condition_on_previous_text=False)
         h = "".join(x.text for x in segs); sc = difflib.SequenceMatcher(None, norm(VS[lid]["text"]), norm(h)).ratio()
         res.append(dict(shot="VO", line=VS[lid]["text"], heard=h, score=round(sc, 2))); print("VO", round(sc, 2), VS[lid]["text"], "→", h, flush=True)
     out["pass2_asr"] = res
     (RV / f"{stem}_asr.json").write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
     sys.exit()
 
-# ---- pass 1：逐鏡抽格
+# ---- pass 1：逐镜抽格
 rows = []
 for k in ORDER:
     a, b = ST[k], end_of(k); row = Image.new("RGB", (448 * 4, 252))
@@ -74,7 +74,7 @@ for p in range(0, len(rows), 11):
     sheet.save(RV / f"{stem}_pass1_{p // 11 + 1}.jpg", quality=80)
 out["pass1_sheets"] = sorted(x.name for x in RV.glob(f"{stem}_pass1_*.jpg"))
 
-# ---- pass 3：雜訊
+# ---- pass 3：杂讯
 sys.path.insert(0, r"C:\AI\tools")
 import noise_scan
 noisy = []
@@ -85,10 +85,10 @@ for k in ORDER:
         s = max(noise_scan.hf(f) for f in fs) if fs else -1
         f0 = noise_scan.frame(str(c), 0.02); s0 = noise_scan.hf(f0) if f0 else 0
         ratio = s / s0 if s0 else 0
-        if s > 0.54 and ratio > 1.25: noisy.append((k, round(s, 3), round(ratio, 2)))   # 比首幀（乾淨關鍵幀）髒 25% 以上才算雜訊
+        if s > 0.54 and ratio > 1.25: noisy.append((k, round(s, 3), round(ratio, 2)))   # 比首帧（干净关键帧）脏 25% 以上才算杂讯
 out["pass3_noisy"] = noisy
 
-# ---- pass 4：黑畫面／定格／響度
+# ---- pass 4：黑画面／定格／响度
 r = subprocess.run(["ffmpeg", "-i", str(cut), "-vf", "blackdetect=d=0.2:pix_th=0.08,freezedetect=n=0.002:d=0.8", "-af", "ebur128=peak=true", "-f", "null", "-"],
                    capture_output=True, text=True, encoding="utf-8", errors="replace")
 out["pass4_black"] = [l.split("black_start:")[1].split()[0] for l in r.stderr.splitlines() if "black_start" in l]
@@ -96,7 +96,7 @@ out["pass4_freeze"] = [l.split("freeze_start:")[1].split()[0] for l in r.stderr.
 summ = r.stderr[r.stderr.rfind("Summary:"):]; m = re.search(r"I:\s*(-?[\d.]+) LUFS", summ); pk = re.search(r"Peak:\s*(-?[\d.]+) dBFS", summ)
 out["pass4_loudness_LUFS"] = float(m.group(1)) if m else None; out["pass4_true_peak_dBFS"] = float(pk.group(1)) if pk else None
 
-# ---- pass 5：切點對照、接點明暗、字幕重疊
+# ---- pass 5：切点对照、接点明暗、字幕重叠
 tiles, jumps = [], []
 for a_, b_ in zip(ORDER, ORDER[1:]):
     t = ST[b_]; L, R = grab(t - 0.06, 320, 180), grab(t + 0.03, 320, 180)

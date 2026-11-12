@@ -5,7 +5,7 @@ Writes every H3 prompt in the official `h3-prompt-writing` Ref2VA six-section fo
   subject_definitions: / summary: / retention_analysis: / detailed_description: / overall_soundscape: / non_diegetic_music:
 with <Subject N>, <Picture N>, <Audio N> labels, speaker IDs (S1), dialogue as <d>[Chinese] ...</d>, cuts as
 "[Shot 2] At 00:03.500, the camera cuts to ...", off-screen voice-over with closed lips, soundscape without dialogue.
-Then generates the clip on local ComfyUI with the settings validated in 〈老師，這次換你〉 (Ref2VA INT8, first frame pinned at
+Then generates the clip on local ComfyUI with the settings validated in 〈老师，这次换你〉 (Ref2VA INT8, first frame pinned at
 frame 0, 14 steps res_multistep, no EasyCache, lossless PNG frames re-encoded at CRF 12).
 
 Usage (H3 venv: C:\\AI\\H3\\venv\\Scripts\\python.exe, or C:\\AI\\tools\\make_shot.cmd):
@@ -44,7 +44,7 @@ Shot spec (JSON; relative paths resolve against the JSON file's folder):
      # (our A/B 2026-10-23: one-line actions gave 1/2.7 of the motion). In-shot times ("at about 1.2 seconds") optional.
      "action": "Starting from <Picture 1>, Ahe lifts his chin from the notebook and turns his head toward the teacher on his left. "
                "His eyebrows rise, the corners of his mouth curl up slowly into a small grateful smile, and he gives one short nod.",
-     "dialogue": [{"subject": "ahe", "line": "謝謝你讓我自己做。", "lang": "Chinese", "offscreen": false,
+     "dialogue": [{"subject": "ahe", "line": "谢谢你让我自己做。", "lang": "Chinese", "offscreen": false,
                    "after": "He closes his lips and keeps smiling."}],
      "at": null},                    # later shots: cut time in seconds, strictly increasing and < duration
   ],
@@ -64,11 +64,11 @@ import urllib.request
 from pathlib import Path
 
 HOST = os.environ.get("COMFY_HOST", "http://127.0.0.1:8188")
-COMFY = Path(os.environ.get("COMFY_DIR", r"C:\AI\H3\ComfyUI-0.36.0"))
+COMFY = Path(os.environ.get("COMFY_DIR", Path(__file__).resolve().parent.parent if os.name != 'nt' else r"C:\AI\H3\ComfyUI-0.36.0"))
 FPS = 24
 SECTIONS = ["subject_definitions", "summary", "retention_analysis", "detailed_description", "overall_soundscape", "non_diegetic_music"]
 MODELS = dict(unet=os.environ.get("H3_UNET", "minimax_h3_ref2va_pruned_int8_convrot.safetensors"),  # H3_UNET: A/B other weights (e.g. unpruned minimax_h3_ref2va_int8_convrot.safetensors)
-              clip=os.environ.get("H3_CLIP", "qwen3vl_32b_h3_ultra_uncensored_heretic_int8_convrot.safetensors"),  # 16GB profile: qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors
+              clip=os.environ.get("H3_CLIP", "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors"),  # 16GB profile default
               video_vae=os.environ.get("H3_VIDEO_VAE", "minimax_h3_video_vae_fp16.safetensors"), audio_vae="minimax_h3_audio_vae_fp32.safetensors")
 
 
@@ -442,7 +442,7 @@ def build_graph(spec, prompt, base, tag):
             g[n] = {"class_type": "LoadImage", "inputs": {"image": stage(base / s["identity_image"], f"{tag}_id{i}.png")}}
             g["6"]["inputs"][f"ref_images.ref_image_{i}"] = [n, 0]
             i += 1
-    if spec.get("camera_video"):  # Blender previs camera guide (blender-previs skill), as in 〈那句話，我收回〉v5
+    if spec.get("camera_video"):  # Blender previs camera guide (blender-previs skill), as in 〈那句话，我收回〉v5
         g["30"] = {"class_type": "LoadVideo", "inputs": {"file": stage(base / spec["camera_video"]["file"], f"{tag}_camera.mp4")}}
         g["31"] = {"class_type": "GetVideoComponents", "inputs": {"video": ["30", 0]}}
         g["6"]["inputs"]["ref_videos.ref_video_0"] = ["31", 0]

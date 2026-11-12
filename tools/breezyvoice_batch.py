@@ -1,19 +1,19 @@
-"""BreezyVoice（聯發科＋台大，Apache-2.0 可商用台灣國語 TTS）批次生成：模型只載一次，每句抽多個 seed 當候選。2026-10-07 建立。
-挑選用 breezyvoice_pick.py（Voice venv：ASR 必須全對＋對照 edge-tts 台灣國語參考音的腔調分數）。一鍵：make_breezyvoice.cmd jobs.json
+"""BreezyVoice（联发科＋台大，Apache-2.0 可商用台湾国语 TTS）批次生成：模型只载一次，每句抽多个 seed 当候选。2026-10-07 建立。
+挑选用 breezyvoice_pick.py（Voice venv：ASR 必须全对＋对照 edge-tts 台湾国语参考音的腔调分数）。一键：make_breezyvoice.cmd jobs.json
 
-執行（BreezyVoice venv，Python 3.10）：
+执行（BreezyVoice venv，Python 3.10）：
   set PYTHONUTF8=1
   set PYTHONPATH=C:\\AI\\BreezyVoice\\winstub;C:\\AI\\BreezyVoice\\code;C:\\AI\\BreezyVoice\\code\\third_party\\Matcha-TTS
   C:\\AI\\BreezyVoice\\venv\\Scripts\\python.exe C:\\AI\\tools\\breezyvoice_batch.py jobs.json
 
-jobs.json（相對路徑以 jobs.json 所在資料夾為準）：
+jobs.json（相对路径以 jobs.json 所在资料夹为准）：
 {"out_dir": "bv", "seeds": 8,
- "jobs": [{"name": "A_V01", "text": "這是阿禾。", "ref_audio": "ref.wav", "ref_text": "參考音逐字稿", "seeds": 8 (選填), "edge_voice": "zh-TW-YunJheNeural" (給挑選用)}]}
-輸出 <out_dir>/cand/<name>_s<seed>.wav（22.05 kHz），已存在就跳過；紀錄 <out_dir>/bv_log.jsonl。
+ "jobs": [{"name": "A_V01", "text": "这是阿禾。", "ref_audio": "ref.wav", "ref_text": "参考音逐字稿", "seeds": 8 (选填), "edge_voice": "zh-TW-YunJheNeural" (给挑选用)}]}
+输出 <out_dir>/cand/<name>_s<seed>.wav（22.05 kHz），已存在就跳过；纪录 <out_dir>/bv_log.jsonl。
 
-念不準的字：直接在文字裡標注音，例如「連假[:ㄐㄧㄚ4]」（標在該字後面），不必再找同音字；下方 TW_BOPO 會自動補常見的台灣讀音。
-數字：Windows 版沒有文字正規化（pynini 裝不了），阿拉伯數字會自動轉成國字（只處理整數）。
-Windows 的坑：g2pw 的多程序 DataLoader 會卡死 → 建立後設 num_workers=0（已處理）。"""
+念不准的字：直接在文字里标注音，例如「连假[:ㄐㄧㄚ4]」（标在该字后面），不必再找同音字；下方 TW_BOPO 会自动补常见的台湾读音。
+数字：Windows 版没有文字正规化（pynini 装不了），阿拉伯数字会自动转成国字（只处理整数）。
+Windows 的坑：g2pw 的多程序 DataLoader 会卡死 → 建立后设 num_workers=0（已处理）。"""
 import json
 import os
 import re
@@ -34,9 +34,9 @@ from g2pw import G2PWConverter  # noqa: E402
 from single_inference import CustomCosyVoice, get_bopomofo_rare  # noqa: E402
 from cosyvoice.utils.file_utils import load_wav  # noqa: E402
 
-# 台灣讀音強制表（g2pw 判錯過的才放；詞 → 加注音的寫法）
+# 台湾读音强制表（g2pw 判错过的才放；词 → 加注音的写法）
 TW_BOPO = {
-    "連假": "連假[:ㄐㄧㄚ4]", "放假": "放假[:ㄐㄧㄚ4]", "請假": "請假[:ㄐㄧㄚ4]", "暑假": "暑假[:ㄐㄧㄚ4]", "寒假": "寒假[:ㄐㄧㄚ4]",
+    "连假": "连假[:ㄐㄧㄚ4]", "放假": "放假[:ㄐㄧㄚ4]", "请假": "请假[:ㄐㄧㄚ4]", "暑假": "暑假[:ㄐㄧㄚ4]", "寒假": "寒假[:ㄐㄧㄚ4]",
     "假期": "假[:ㄐㄧㄚ4]期", "假日": "假[:ㄐㄧㄚ4]日",
 }
 DIG = "零一二三四五六七八九"
@@ -51,11 +51,11 @@ def int_zh(n):
     if n < 1000:
         h, r = divmod(n, 100)
         return DIG[h] + "百" + ("" if r == 0 else ("零" + DIG[r] if r < 10 else ("一" + int_zh(r) if r < 20 else int_zh(r))))
-    return "".join(DIG[int(c)] for c in str(n))      # 年份等大數：逐字念
+    return "".join(DIG[int(c)] for c in str(n))      # 年份等大数：逐字念
 
 
 def prep(text):
-    text = re.sub(r"\[:[^\]]*\]|\d+", lambda m: m.group() if m.group().startswith("[") else int_zh(int(m.group())), text)   # 注音標記裡的聲調數字不轉
+    text = re.sub(r"\[:[^\]]*\]|\d+", lambda m: m.group() if m.group().startswith("[") else int_zh(int(m.group())), text)   # 注音标记里的声调数字不转
     for k, v in TW_BOPO.items():
         if v not in text:
             text = text.replace(k, v)

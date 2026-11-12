@@ -24,3 +24,33 @@ services:
     ipc: host
     stdin_open: true
     tty: true
+
+  comfy:
+    build:
+      context: .
+      dockerfile: docker/comfy/Dockerfile
+    image: lopy-comfy:latest
+    container_name: lopy-comfy
+    restart: unless-stopped
+    command: ["python3", "/opt/ComfyUI/main.py", "--disable-cuda-malloc", "--listen", "0.0.0.0", "--port", "8188", "--disable-auto-launch", "--preview-method", "none", "--cache-none", "--lowvram", "--reserve-vram", "4.0", "--input-directory", "/workspace/input", "--output-directory", "/workspace/output"]
+    ports:
+      - "8188:8188"
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - PYTHONUTF8=1
+      - PYTHONUNBUFFERED=1
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+    volumes:
+      - .:/workspace
+      - ./models:/workspace/models
+      - ./output:/workspace/output
+      - ./setup/comfy_patch/sitecustomize.py:/opt/conda/lib/python3.11/site-packages/sitecustomize.py
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    ipc: host

@@ -1,16 +1,16 @@
-"""破音字檢查：歌詞與 DJ 口白裡「一個字有兩種以上唸法」的字，逐字上網查教育部《重編國語辭典修訂本》，用前後文找出這裡該念哪個音。
-有 DJ 錄音時，再用強制對齊比「各種念法」哪個最像，抓出 TTS 念錯音的字（例：〈Bravo 之戰〉「樂長」被念成 lè zhǎng）。
+"""破音字检查：歌词与 DJ 口白里「一个字有两种以上念法」的字，逐字上网查教育部《重编国语辞典修订本》，用前后文找出这里该念哪个音。
+有 DJ 录音时，再用强制对齐比「各种念法」哪个最像，抓出 TTS 念错音的字（例：〈Bravo 之战〉「乐长」被念成 lè zhǎng）。
 
-用法（Voice venv，在對決的 battle/ 資料夾）：
+用法（Voice venv，在对决的 battle/ 资料夹）：
   python poly_check.py                 # 只查文字 → out/review/poly_check.md
-  python poly_check.py --audio         # 另外比對 DJ 錄音（out/voice/ming/dj_<key>.wav＋dj_align.json，先跑 dj_align.py）
+  python poly_check.py --audio         # 另外比对 DJ 录音（out/voice/ming/dj_<key>.wav＋dj_align.json，先跑 dj_align.py）
 
-判讀：
-  - 「詞典有這個詞」→ 用詞條的音當答案；歌詞有用同音字（sing／dj.tts 和字幕不同）時，檢查同音字的音是否等於答案。
-  - 「要人看上下文」→ 詞典沒有剛好的詞（多半是句子用法，如「我一毛沒收」的「沒」＝ㄇㄟˊ，不是「沒收 ㄇㄛˋ ㄕㄡ」），要自己判斷，
-    必要時查 https://dict.revised.moe.edu.tw/ 例句。工具只列出來，不替你決定。
-  - 唱的部分聲調被旋律蓋掉，機器量不準 → 只在報告標「要聽」；DJ 口白（說話）才做錄音比對。
-查詢結果快取在 out/review/moe_cache.json（重跑不再上網）。查詢只送詞語，不送其他資料。"""
+判读：
+  - 「词典有这个词」→ 用词条的音当答案；歌词有用同音字（sing／dj.tts 和字幕不同）时，检查同音字的音是否等于答案。
+  - 「要人看上下文」→ 词典没有刚好的词（多半是句子用法，如「我一毛没收」的「没」＝ㄇㄟˊ，不是「没收 ㄇㄛˋ ㄕㄡ」），要自己判断，
+    必要时查 https://dict.revised.moe.edu.tw/ 例句。工具只列出来，不替你决定。
+  - 唱的部分声调被旋律盖掉，机器量不准 → 只在报告标「要听」；DJ 口白（说话）才做录音比对。
+查询结果快取在 out/review/moe_cache.json（重跑不再上网）。查询只送词语，不送其他资料。"""
 import argparse, json, re, sys, time, html
 from pathlib import Path
 
@@ -18,17 +18,17 @@ ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "out"
 URL = "https://dict.revised.moe.edu.tw/search.jsp"
 UA = {"User-Agent": "Mozilla/5.0 (poly-check script)"}
-LIGHT = set("的了著得地一不個們嗎呢吧啊")          # 虛字、變調字：念法跟著句子走，預設不列（--all 才列）
+LIGHT = set("的了著得地一不个们吗呢吧啊")          # 虚字、变调字：念法跟著句子走，预设不列（--all 才列）
 CJK = re.compile(r"[一-鿿]")
 
 _cache = None
 CACHE = OUT / "review" / "moe_cache.json"
-SITES = {"concised": "https://dict.concised.moe.edu.tw/search.jsp",   # 簡編本：只收常用音，判斷「是不是破音字」用這本
-         "revised": "https://dict.revised.moe.edu.tw/search.jsp"}     # 修訂本：詞條多，找前後文的詞用這本補
+SITES = {"concised": "https://dict.concised.moe.edu.tw/search.jsp",   # 简编本：只收常用音，判断「是不是破音字」用这本
+         "revised": "https://dict.revised.moe.edu.tw/search.jsp"}     # 修订本：词条多，找前后文的词用这本补
 
 
 def moe(word, site="revised"):
-    """回傳 [(詞條, [每字注音…]), …]；查無資料回傳 []。"""
+    """回传 [(词条, [每字注音…]), …]；查无资料回传 []。"""
     global _cache
     if _cache is None:
         _cache = json.loads(CACHE.read_text(encoding="utf-8")) if CACHE.exists() else {}
@@ -43,7 +43,7 @@ def moe(word, site="revised"):
         except Exception:
             time.sleep(2 + 3 * k)
     else:
-        raise SystemExit(f"教育部辭典連不上（查「{word}」）")
+        raise SystemExit(f"教育部辞典连不上（查「{word}」）")
     t = r.text
     res = []
     def syl(block):
@@ -69,7 +69,7 @@ def moe(word, site="revised"):
 
 
 def char_readings(c, site="concised"):
-    """這個字的常用念法（簡編本；簡編本沒收就用修訂本）。"""
+    """这个字的常用念法（简编本；简编本没收就用修订本）。"""
     seen = []
     for ent, ph in moe(c, site):
         if ent.replace("（又音）", "") == c and ph and ph[0] not in seen:
@@ -80,7 +80,7 @@ def char_readings(c, site="concised"):
 
 
 def word_hits(phrase, i):
-    """phrase 裡第 i 個字：找詞典裡剛好等於「含這個字的 2–4 字片段」的詞條 → [(詞, 這個字的注音)]，長的在前。"""
+    """phrase 里第 i 个字：找词典里刚好等于「含这个字的 2–4 字片段」的词条 → [(词, 这个字的注音)]，长的在前。"""
     hits = []
     for n in (4, 3, 2):
         for a in range(max(0, i - n + 1), min(i, len(phrase) - n) + 1):
@@ -101,12 +101,12 @@ def phrases(text):
 
 
 def collect(B):
-    """[(來源, 字幕文字, 送去生成的文字)]"""
+    """[(来源, 字幕文字, 送去生成的文字)]"""
     rows = []
     for k, r in B["rappers"].items():
         for sec in r["lyrics"]:
             for ln in sec["lines"]:
-                rows.append((f"{r['short']}歌詞", ln["show"].replace("　", " "), ln["sing"]))
+                rows.append((f"{r['short']}歌词", ln["show"].replace("　", " "), ln["sing"]))
     dj = B["dj"]
     for k, t in dj["lines"].items():
         rows.append((f"DJ {k}", t, dj.get("tts", {}).get(k, t)))
@@ -114,7 +114,7 @@ def collect(B):
 
 
 def align_sub(show, sing):
-    """字幕與生成文字逐字對應（只比漢字；數字寫法不同的段落跳過，只對等長的替換段）。"""
+    """字幕与生成文字逐字对应（只比汉字；数字写法不同的段落跳过，只对等长的替换段）。"""
     from difflib import SequenceMatcher
     a, b = "".join(CJK.findall(show)), "".join(CJK.findall(sing))
     m = {}
@@ -125,7 +125,7 @@ def align_sub(show, sing):
 
 
 def guess(text):
-    """pypinyin 依詞組猜的念法（大陸預設，TTS 前端多半照這個念）→ 注音，給人對照。"""
+    """pypinyin 依词组猜的念法（大陆预设，TTS 前端多半照这个念）→ 注音，给人对照。"""
     from pypinyin import pinyin, Style
     cs = CJK.findall(text)
     return [p[0] for p in pinyin("".join(cs), style=Style.BOPOMOFO)]
@@ -134,12 +134,12 @@ def guess(text):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--json", default=str(ROOT / "battle.json"))
-    ap.add_argument("--audio", action="store_true", help="DJ 錄音比對各種念法")
-    ap.add_argument("--all", action="store_true", help="連「的了著得地一不」也列")
+    ap.add_argument("--audio", action="store_true", help="DJ 录音比对各种念法")
+    ap.add_argument("--all", action="store_true", help="连「的了著得地一不」也列")
     a = ap.parse_args()
     B = json.loads(Path(a.json).read_text(encoding="utf-8"))
-    md = ["# 破音字檢查（教育部《重編國語辭典修訂本》）", "",
-          "| 來源 | 字 | 前後文 | 這個字的念法 | 詞典裡的詞 → 這裡的音 | pypinyin 猜 | 生成文字 | 判斷 |", "|:--|:--|:--|:--|:--|:--|:--|:--|"]
+    md = ["# 破音字检查（教育部《重编国语辞典修订本》）", "",
+          "| 来源 | 字 | 前后文 | 这个字的念法 | 词典里的词 → 这里的音 | pypinyin 猜 | 生成文字 | 判断 |", "|:--|:--|:--|:--|:--|:--|:--|:--|"]
     bad, ok_dict, ctxq, dj_expect = [], [], [], []
     for src, show, sing in collect(B):
         sub = align_sub(show, sing); gs = guess(show); pos = 0
@@ -153,43 +153,43 @@ def main():
                 ans = sorted({h[1] for h in hits if "又音" not in h[0]})
                 sc = sub.get(gi) if sub else None
                 gen = ""
-                verdict = "要人看上下文" if len(ans) != 1 else "照詞典"
+                verdict = "要人看上下文" if len(ans) != 1 else "照词典"
                 if sc and sc != c:
                     srd = [x.replace("（又音）", "") for x in char_readings(sc)] or ["?"]
-                    gen = f"寫成「{sc}」（{'／'.join(srd)}）"
+                    gen = f"写成「{sc}」（{'／'.join(srd)}）"
                     if len(ans) == 1:
-                        verdict = "同音字對" if ans[0] in srd else "⚠ 同音字的音跟詞典不同"
+                        verdict = "同音字对" if ans[0] in srd else "⚠ 同音字的音跟词典不同"
                 elif src.startswith("DJ"):
                     dj_expect.append((src[3:], gi, c, ans[0] if len(ans) == 1 else None, rd))
                 g = gs[gi] if gi < len(gs) else ""
-                if verdict == "照詞典" and g and ans[0].replace("˙", "") != g.replace("˙", ""):
-                    verdict = "照詞典 ★和大陸預設不同，確認意思"          # 例：記載 ㄗㄞˋ（陸 zǎi）、一毛沒收（詞條＝充公）
+                if verdict == "照词典" and g and ans[0].replace("˙", "") != g.replace("˙", ""):
+                    verdict = "照词典 ★和大陆预设不同，确认意思"          # 例：记载 ㄗㄞˋ（陆 zǎi）、一毛没收（词条＝充公）
                 ctx = ph[max(0, i - 3):i] + f"【{c}】" + ph[i + 1:i + 4]
                 hs = "、".join(f"{w} {p}" for w, p in hits[:4]) or "—"
                 line = f"| {src} | {c} | {ctx} | {'／'.join(rd)} | {hs} | {g} | {gen} | {verdict} |"
                 md.append(line)
-                (bad if verdict.startswith("⚠") else ok_dict if verdict.startswith(("照詞典", "同音字對")) else ctxq).append(line)
+                (bad if verdict.startswith("⚠") else ok_dict if verdict.startswith(("照词典", "同音字对")) else ctxq).append(line)
             pos += len(ph)
     H = [md[2], md[3]]
-    md += ["", f"共 {len(md) - 4} 個破音字。", "",
-           f"## ⚠ 同音字的音跟詞典不同（{len(bad)}）", "", *H, *(bad or ["（無）"]), "",
-           f"## 詞典詞條定的音（{len(ok_dict)}）— 要確認詞條的意思跟句子一樣（「一毛沒收」≠ 詞條「沒收＝充公 ㄇㄛˋ」）", "", *H, *(ok_dict or ["（無）"]), "",
-           f"## 詞典沒有剛好的詞（{len(ctxq)}）— 看前後文自己定（pypinyin 猜的是大陸預設，TTS 多半照它念）", "", *H, *(ctxq or ["（無）"])]
+    md += ["", f"共 {len(md) - 4} 个破音字。", "",
+           f"## ⚠ 同音字的音跟词典不同（{len(bad)}）", "", *H, *(bad or ["（无）"]), "",
+           f"## 词典词条定的音（{len(ok_dict)}）— 要确认词条的意思跟句子一样（「一毛没收」≠ 词条「没收＝充公 ㄇㄛˋ」）", "", *H, *(ok_dict or ["（无）"]), "",
+           f"## 词典没有刚好的词（{len(ctxq)}）— 看前后文自己定（pypinyin 猜的是大陆预设，TTS 多半照它念）", "", *H, *(ctxq or ["（无）"])]
     flags = bad
     if a.audio:
-        md += ["", "## DJ 錄音比對（強制對齊分數：越接近 0 越像）", ""] + audio_check(B, dj_expect)
+        md += ["", "## DJ 录音比对（强制对齐分数：越接近 0 越像）", ""] + audio_check(B, dj_expect)
     rep = OUT / "review" / "poly_check.md"
     rep.parent.mkdir(parents=True, exist_ok=True)
     rep.write_text("\n".join(md) + "\n", encoding="utf-8")
-    print("\n".join(flags) or "沒有要處理的破音字"); print("→", rep)
+    print("\n".join(flags) or "没有要处理的破音字"); print("→", rep)
 
 
-# ------------------------------------------------------------------ DJ 錄音：各種念法的強制對齊分數
+# ------------------------------------------------------------------ DJ 录音：各种念法的强制对齐分数
 BOPO = None
 
 
 def bopo2py(c, bp):
-    """這個字的注音 → 去聲調拼音（用 pypinyin 同一字的多音清單對照）。"""
+    """这个字的注音 → 去声调拼音（用 pypinyin 同一字的多音清单对照）。"""
     from pypinyin import pinyin, Style
     nb = pinyin(c, style=Style.BOPOMOFO, heteronym=True)[0]
     nn = pinyin(c, style=Style.NORMAL, heteronym=True)[0]
@@ -204,7 +204,7 @@ def audio_check(B, expect):
     import torch, torchaudio, soundfile as sf
     from pypinyin import lazy_pinyin
     alp = OUT / "voice" / "ming" / "dj_align.json"
-    if not alp.exists(): return ["（沒有 dj_align.json，先跑 dj_align.py）"]
+    if not alp.exists(): return ["（没有 dj_align.json，先跑 dj_align.py）"]
     AL = json.loads(alp.read_text(encoding="utf-8"))
     FA = torchaudio.pipelines.MMS_FA; model = FA.get_model().cuda().eval(); D = FA.get_dict()
     out = []
@@ -223,7 +223,7 @@ def audio_check(B, expect):
             p = bopo2py(c, r)
             if p and p not in alts.values(): alts[r] = p
         exp_p = bopo2py(c, ans) if ans else None
-        if len(set(alts.values())) < 2: continue                    # 只差聲調：對齊分數分不出，略
+        if len(set(alts.values())) < 2: continue                    # 只差声调：对齐分数分不出，略
         x, sr = sf.read(str(wav), always_2d=True); x = x.mean(1)
         seg = x[int(max(0, chars[a0][1] - .1) * sr):int((chars[a1 - 1][2] + .1) * sr)]
         w = torchaudio.functional.resample(torch.tensor(seg, dtype=torch.float32)[None], sr, FA.sample_rate).cuda()
@@ -240,10 +240,10 @@ def audio_check(B, expect):
         scs = "、".join(f"{p}={v:.2f}" for p, v in sorted(sc.items(), key=lambda kv: -kv[1]))
         if exp_p:
             ok = best == exp_p or sc[exp_p] >= sc[best] - 0.03
-            out.append(f"- {'✅' if ok else '⚠ 可能念錯'} DJ {key}「{ctx}」的「{c}」：該念 {ans}（{exp_p}），錄音最像 {best}；{scs}")
+            out.append(f"- {'✅' if ok else '⚠ 可能念错'} DJ {key}「{ctx}」的「{c}」：该念 {ans}（{exp_p}），录音最像 {best}；{scs}")
         else:
-            out.append(f"- ❓ DJ {key}「{ctx}」的「{c}」：詞典沒有剛好的詞，錄音最像 **{best}** → 自己對前後文判斷對不對；{scs}")
-    return out or ["（沒有只靠聲母韻母就分得出的破音字）"]
+            out.append(f"- ❓ DJ {key}「{ctx}」的「{c}」：词典没有刚好的词，录音最像 **{best}** → 自己对前后文判断对不对；{scs}")
+    return out or ["（没有只靠声母韵母就分得出的破音字）"]
 
 
 if __name__ == "__main__":

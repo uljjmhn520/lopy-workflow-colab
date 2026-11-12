@@ -1,5 +1,5 @@
-"""〈D-7〉H3 逐鏡設定（pipeline_gen.py 匯入）。
-lines: (台詞 id, 開始秒數)，對應 voice/<id>.wav。frame：首幀（預設 first/<id>.png）；last：尾幀鎖；native：不給固定音軌（讓 H3 自己出音效，只用在沒有人說話的鏡頭）。"""
+"""〈D-7〉H3 逐镜设定（pipeline_gen.py 汇入）。
+lines: (台词 id, 开始秒数)，对应 voice/<id>.wav。frame：首帧（预设 first/<id>.png）；last：尾帧锁；native：不给固定音轨（让 H3 自己出音效，只用在没有人说话的镜头）。"""
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -35,7 +35,7 @@ def S(id, subs, action, lines=(), dur=4.0, frame=None, last=None, cons=(), sound
 
 V = (768, 1344)
 HOME = "a Taiwanese family apartment at night"
-# --- 1 D-7 下課
+# --- 1 D-7 下课
 S("S01", ["shb"], "Students chat during recess; Ahe folds his paper airplane; Afu tears open his snack bag. In the front doorway the teacher lifts "
   "his coffee mug slightly and says his line to the class in a casual, offhand tone.", [("L01", 1.0)], 5.0,
   cons=[HOOD, "Only the teacher in the doorway speaks the line."], soundscape=RECESS)
@@ -53,7 +53,7 @@ S("P1b", ["ahe"], "Ahe plays the handheld game console intensely, thumbs moving 
   soundscape=NIGHT)
 S("P1c", ["afu"], "Afu shovels rice into his mouth with his chopsticks and chews happily, eyes closing with joy. He does not speak.", dur=6.0,
   setting=HOME, size=V, soundscape=NIGHT)
-# --- 3 D-1 放學
+# --- 3 D-1 放学
 S("S05", ["shb"], "The teacher glances at the blank laptop screen, then looks up at the students and says his line calmly.", [("L05", 0.8)], 5.0,
   cons=[HOOD], soundscape="After-school classroom: backpacks zipping, chairs pushed in, kids leaving.")
 S("S06", ["ahe"], "Ahe's hands stop on the backpack zipper. He slowly lifts his head, his mouth slowly falling open in shock, and stays frozen. "
@@ -61,7 +61,7 @@ S("S06", ["ahe"], "Ahe's hands stop on the backpack zipper. He slowly lifts his 
 S("N2a", ["xw"], "Xiaowen zips her backpack closed calmly and smiles a little. She does not speak.", dur=4.0, size=V)
 S("N2b", ["ahe"], "Ahe stays frozen in shock with his mouth open; only his eyes blink once. He does not speak.", dur=4.0, size=V)
 S("N2c", ["afu"], "Afu licks his popsicle happily and swings his backpack onto his shoulder. He does not speak.", dur=4.0, size=V)
-# --- 4 阿禾房間
+# --- 4 阿禾房间
 S("S07", ["ahe"], "Ahe takes a deep breath and pushes up his T-shirt sleeves one after the other, keeping his face toward the camera with a "
   "determined look, ending with both fists on the desk. He does not speak.", dur=4.0, setting=HOME, soundscape=NIGHT, last=HERE / "first/S07_end.png",
   cons=["Ahe keeps facing the camera for the whole clip and never looks down; his face, cowlick and messy hair stay exactly the same."])

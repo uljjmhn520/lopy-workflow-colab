@@ -1,8 +1,8 @@
-"""YuE2 唱詞歌（本機 ComfyUI 原生 YuE2 節點）：一次抽多個 seed，同時存下 YuE2 寫的 ABC 譜。
-預設＝templates/song_yue2_v14 的「14 版」配方：melody 規劃模式（只規劃人聲旋律、伴奏自由發揮）、int8 checkpoint。
-用法：python yue_song.py <名稱> <角色> --style 風格.txt --lyrics 歌詞.txt --out 輸出資料夾 [--seeds 1,...,12] [--cot melody|full|off] [--ckpt int8|bf16] [--abc 譜] [--secs 150]
-輸出 <out>/<角色>_s<seed>.flac 與 .abc；之後用 pick_song.py 只留 144 BPM、依逐句聽寫排序。
-環境變數：COMFY_HOST（預設 http://127.0.0.1:8188）、COMFY_DIR（ComfyUI 資料夾，拿輸出檔用）。"""
+"""YuE2 唱词歌（本机 ComfyUI 原生 YuE2 节点）：一次抽多个 seed，同时存下 YuE2 写的 ABC 谱。
+预设＝templates/song_yue2_v14 的「14 版」配方：melody 规划模式（只规划人声旋律、伴奏自由发挥）、int8 checkpoint。
+用法：python yue_song.py <名称> <角色> --style 风格.txt --lyrics 歌词.txt --out 输出资料夹 [--seeds 1,...,12] [--cot melody|full|off] [--ckpt int8|bf16] [--abc 谱] [--secs 150]
+输出 <out>/<角色>_s<seed>.flac 与 .abc；之后用 pick_song.py 只留 144 BPM、依逐句听写排序。
+环境变数：COMFY_HOST（预设 http://127.0.0.1:8188）、COMFY_DIR（ComfyUI 资料夹，拿输出档用）。"""
 import argparse, json, os, shutil, time, urllib.request
 from pathlib import Path
 
@@ -46,7 +46,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("name"); ap.add_argument("who")
 ap.add_argument("--ckpt", default="int8"); ap.add_argument("--cot", default="melody"); ap.add_argument("--seeds", default="1,2,3,4,5,6,7,8,9,10,11,12")
 ap.add_argument("--abc"); ap.add_argument("--style", required=True); ap.add_argument("--lyrics", required=True); ap.add_argument("--secs", type=float, default=150)
-ap.add_argument("--out", required=True, help="輸出資料夾")
+ap.add_argument("--out", required=True, help="输出资料夹")
 a = ap.parse_args()
 style = Path(a.style).read_text(encoding="utf-8").strip()
 lyrics = Path(a.lyrics).read_text(encoding="utf-8").strip()

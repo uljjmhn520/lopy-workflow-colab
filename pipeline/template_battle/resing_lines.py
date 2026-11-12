@@ -1,5 +1,5 @@
-"""局部重唱候選逐句比對：窗內每句人聲、混音各聽寫一次（不給提示，拼音比），另外量窗外跟定稿的時間差，和句內有沒有多唱（整窗聽寫）。
-用法（Voice venv）：python resing_lines.py <A|B> <窗開始> <窗結束> <候選標籤> …   輸出 out/song/resing/lines_<標籤>.md"""
+"""局部重唱候选逐句比对：窗内每句人声、混音各听写一次（不给提示，拼音比），另外量窗外跟定稿的时间差，和句内有没有多唱（整窗听写）。
+用法（Voice venv）：python resing_lines.py <A|B> <窗开始> <窗结束> <候选标签> …   输出 out/song/resing/lines_<标签>.md"""
 import json
 import os
 import re
@@ -63,14 +63,14 @@ for t in tags:
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-ss", f"{w0 - 2}", "-to", f"{w1 + 2}", "-i", str(p), "-ar", "44100", str(clip)], check=True)
     voc, _inst = mb.sep_stems(clip, D / "sep")
     v, _ = librosa.load(str(voc), sr=SR, mono=True)
-    out.append(f"\n## {t}  長度 {len(y) / SR:.1f}  窗前差 {lag:.0f} ms  窗後差 {lag2:.0f} ms")
-    out.append("整窗人聲：" + hear(v))
+    out.append(f"\n## {t}  长度 {len(y) / SR:.1f}  窗前差 {lag:.0f} ms  窗后差 {lag2:.0f} ms")
+    out.append("整窗人声：" + hear(v))
     out.append("整窗混音：" + hear(y[int((w0 - .2) * SR):int((w1 + .2) * SR)]))
     for r in rows:
         want = NOTCH.sub("", cc.convert(r["text"]))
         s0, s1 = r["start"] - 0.3, r["end"] + 0.35
         hv = hear(v[int((s0 - w0 + 2) * SR):int((s1 - w0 + 2) * SR)]); hm = hear(y[int(s0 * SR):int(s1 * SR)])
         mv, mm = miss(want, hv), miss(want, hm)
-        out.append(f"- {r['start']:.1f} {want} ｜人聲 {hv} ｜混音 {hm} ｜都缺 {''.join(c for c in mv if c in mm)}")
+        out.append(f"- {r['start']:.1f} {want} ｜人声 {hv} ｜混音 {hm} ｜都缺 {''.join(c for c in mv if c in mm)}")
     print("\n".join(out[-len(rows) - 3:]), flush=True)
 (D / f"lines_{tags[0]}.md").write_text("\n".join(out), encoding="utf-8")

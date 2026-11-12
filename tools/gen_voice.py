@@ -5,9 +5,9 @@ Engines:
   edge      Microsoft Edge TTS (fast, zero GPU memory, broadcast neural voices)
 
 Examples:
-  & "C:\\AI\\Voice\\venv\\Scripts\\python.exe" C:\\AI\\tools\\gen_voice.py --text "大家好，今天進行語音生成測試。"
-  & "C:\\AI\\Voice\\venv\\Scripts\\python.exe" C:\\AI\\tools\\gen_voice.py --text "測試" --ref "C:\\path\\sample.wav" --out "out.wav"
-  & "C:\\AI\\Voice\\venv\\Scripts\\python.exe" C:\\AI\\tools\\gen_voice.py --engine edge --text "微軟雲端語音測試" --voice zh-TW-HsiaoChenNeural
+  & "C:\\AI\\Voice\\venv\\Scripts\\python.exe" C:\\AI\\tools\\gen_voice.py --text "大家好，今天进行语音生成测试。"
+  & "C:\\AI\\Voice\\venv\\Scripts\\python.exe" C:\\AI\\tools\\gen_voice.py --text "测试" --ref "C:\\path\\sample.wav" --out "out.wav"
+  & "C:\\AI\\Voice\\venv\\Scripts\\python.exe" C:\\AI\\tools\\gen_voice.py --engine edge --text "微软云端语音测试" --voice zh-TW-HsiaoChenNeural
 """
 import argparse
 import json

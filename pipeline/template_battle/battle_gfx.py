@@ -1,11 +1,11 @@
-"""饒舌對決的字卡與逐格特效（make_battle.py 的 cut／srt 階段用）。
-字卡：片名、VS、講白字卡（battle.json 的 cards）、人物直排名牌（intro_card）、投票片尾卡；臉部偵測避開臉。
-特效（逐格 ffmpeg 讀入 → numpy／PIL → ffmpeg 寫出）：
-- 字幕：整句出現，韻腳字用己方顏色；唱到韻腳字時從 1.8 倍砸下來＋閃白發光。說話者色塊、左上 ROUND 角標。
-- 攻擊：押回去的那句最後一個韻腳字，從唱的人那側射出月牙斬，飛到對手那側爆開（震動＋放大＋色差）；近景／插入鏡不畫飛行、只在下緣角落爆開（不掃臉）。
-- COMBO：押韻！／雙押！／三押！；兩人的最後一句＝殺招！
-- 長演唱鏡在鏡內每句開頭交替推近 1.18 倍（以臉為中心）；只在切進 flash_scenes 的閃回時閃白；片尾 DJ 三拍大字。
-字型：tools/fonts.py 的粗黑體（Windows 微軟正黑體／Linux Noto Sans CJK）；想用源石黑體等字型，設環境變數 FONT_JHBD。"""
+"""饶舌对决的字卡与逐格特效（make_battle.py 的 cut／srt 阶段用）。
+字卡：片名、VS、讲白字卡（battle.json 的 cards）、人物直排名牌（intro_card）、投票片尾卡；脸部侦测避开脸。
+特效（逐格 ffmpeg 读入 → numpy／PIL → ffmpeg 写出）：
+- 字幕：整句出现，韵脚字用己方颜色；唱到韵脚字时从 1.8 倍砸下来＋闪白发光。说话者色块、左上 ROUND 角标。
+- 攻击：押回去的那句最后一个韵脚字，从唱的人那侧射出月牙斩，飞到对手那侧爆开（震动＋放大＋色差）；近景／插入镜不画飞行、只在下缘角落爆开（不扫脸）。
+- COMBO：押韵！／双押！／三押！；两人的最后一句＝杀招！
+- 长演唱镜在镜内每句开头交替推近 1.18 倍（以脸为中心）；只在切进 flash_scenes 的闪回时闪白；片尾 DJ 三拍大字。
+字型：tools/fonts.py 的粗黑体（Windows 微软正黑体／Linux Noto Sans CJK）；想用源石黑体等字型，设环境变数 FONT_JHBD。"""
 import json
 import math
 import re
@@ -25,7 +25,7 @@ PUNCH = 1.18
 import os as _os
 _CFG0 = json.loads((HERE / "battle.json").read_text(encoding="utf-8")) if (HERE / "battle.json").exists() else {}
 LANG = _CFG0.get("lang", "zh")
-SUBS = _os.environ.get("SUBS", "bi")                      # 英文對決：bi＝英文大字＋中文小字｜en＝只有英文
+SUBS = _os.environ.get("SUBS", "bi")                      # 英文对决：bi＝英文大字＋中文小字｜en＝只有英文
 
 
 def _fonts(cfg):
@@ -87,7 +87,7 @@ def text_card(lines, out, accent, size=46):
 
 
 def name_card(columns, out, accent, pad=40, gap=26):
-    """直排人物名牌（第一欄在最右）：楷書金字＋深色底＋己方顏色框。columns＝[[文字, 字級], …]。"""
+    """直排人物名牌（第一栏在最右）：楷书金字＋深色底＋己方颜色框。columns＝[[文字, 字级], …]。"""
     cols = []
     for text, size in columns:
         f = font(size, kind=1); step = int(size * 1.08)
@@ -130,9 +130,9 @@ def card(cfg, key, out):
         return _save(im, out)
     if key == "vs":
         w, h = 1560, 150; im, d = _panel(w, h, GOLD)
-        _t(d, (40, 36), f"{R['A'].get('team', '紅方')}｜{R['A']['name']}", font(46), col["A"])
+        _t(d, (40, 36), f"{R['A'].get('team', '红方')}｜{R['A']['name']}", font(46), col["A"])
         _t(d, (40, 98), R["A"].get("tagline", ""), font(28), INK)
-        _t(d, (w - 40, 36), f"{R['B'].get('team', '藍方')}｜{R['B']['name']}", font(46), col["B"], "ra")
+        _t(d, (w - 40, 36), f"{R['B'].get('team', '蓝方')}｜{R['B']['name']}", font(46), col["B"], "ra")
         _t(d, (w - 40, 98), R["B"].get("tagline", ""), font(28), INK, "ra")
         _t(d, (w / 2, h / 2), "VS", font(70), GOLD, "mm")
         return _save(im, out)
@@ -142,25 +142,25 @@ def card(cfg, key, out):
         _t(d, (w / 2, 30), v.get("title", "留言投票！"), font(64), GOLD, "ma")
         _t(d, (w / 2 - 30, 130), v.get("A", f"挺{R['A']['name']}打 1"), font(44), col["A"], "ra")
         _t(d, (w / 2 + 30, 130), v.get("B", f"挺{R['B']['name']}打 2"), font(44), col["B"], "la")
-        _t(d, (w / 2, 204), v.get("sub", "下一場想看誰對決？也寫在留言！"), font(34), INK, "ma")
-        _t(d, (w / 2, 262), v.get("note", "歌詞為饒舌對決的誇飾，史實見字卡與說明欄｜本片影像與聲音由 AI 生成"), font(24), (200, 196, 186), "ma")
+        _t(d, (w / 2, 204), v.get("sub", "下一场想看谁对决？也写在留言！"), font(34), INK, "ma")
+        _t(d, (w / 2, 262), v.get("note", "歌词为饶舌对决的夸饰，史实见字卡与说明栏｜本片影像与声音由 AI 生成"), font(24), (200, 196, 186), "ma")
         return _save(im, out)
     if key in ("A", "B", "K"):
         c = R[key] if key in R else DJ
         return name_card(c["intro_card"], out, col["J" if key == "K" else key])
     c = cfg["cards"][key]
-    if c.get("image"):                                       # 自己畫好的圖解卡（精準的數學圖、表格）：直接用 PNG
+    if c.get("image"):                                       # 自己画好的图解卡（精准的数学图、表格）：直接用 PNG
         im = Image.open((HERE / c["image"]).resolve()).convert("RGBA"); im.save(out); return out, im.size
     return text_card([(t, acc(a)) for t, a in c["lines"]], out, acc(c.get("accent", "J")), c.get("size", 46))
 
 
-# ------------------------------------------------------------------------------------------------ 臉
+# ------------------------------------------------------------------------------------------------ 脸
 _DET = {}
 
 
 def faces(frame_bgr):
-    """臉框 [(x, y, w, h)]：YuNet 模型（AI_ROOT/tools/models/face_detection_yunet_2023mar.onnx，沒有就從 OpenCV 官方 opencv_zoo 下載，約 230 KB）；
-    下載不到才用 OpenCV 內建 Haar（OpenCV 5 已拿掉 Haar → 回傳空的，字卡只是不避臉。2026-10-29 Colab 實測）。"""
+    """脸框 [(x, y, w, h)]：YuNet 模型（AI_ROOT/tools/models/face_detection_yunet_2023mar.onnx，没有就从 OpenCV 官方 opencv_zoo 下载，约 230 KB）；
+    下载不到才用 OpenCV 内建 Haar（OpenCV 5 已拿掉 Haar → 回传空的，字卡只是不避脸。2026-10-29 Colab 实测）。"""
     import os
     import urllib.request
     import cv2
@@ -173,7 +173,7 @@ def faces(frame_bgr):
             urllib.request.urlretrieve("https://github.com/opencv/opencv_zoo/raw/main/models/face_detection_yunet/"
                                        "face_detection_yunet_2023mar.onnx", str(yn))
         except Exception as e:
-            print("（YuNet 下載失敗：", e, "）", flush=True)
+            print("（YuNet 下载失败：", e, "）", flush=True)
     if yn.exists():
         det = _DET.get((w, h)) or cv2.FaceDetectorYN.create(str(yn), "", (w, h), 0.6); _DET[(w, h)] = det
         _, res = det.detect(frame_bgr)
@@ -197,7 +197,7 @@ def seg_faces(p):
 
 
 def place(size, face_boxes, sub_top=900, margin=40):
-    """字卡位置：先試右上、左上、左中、右中、左下、右下，避開臉（臉框放大 25%）、字幕區與左上 ROUND 角標。"""
+    """字卡位置：先试右上、左上、左中、右中、左下、右下，避开脸（脸框放大 25%）、字幕区与左上 ROUND 角标。"""
     w, h = size; top_l = 150
     cands = [(W - w - margin, 60), (margin, top_l), (margin, max(top_l, (sub_top - h) // 2)), (W - w - margin, (sub_top - h) // 2),
              (margin, sub_top - h - 20), (W - w - margin, sub_top - h - 20), ((W - w) // 2, 60)]
@@ -211,7 +211,7 @@ def place(size, face_boxes, sub_top=900, margin=40):
 
 # ------------------------------------------------------------------------------------------------ 事件
 def char_times(line):
-    """每個字的開口時間：強制對齊的詞時間平均分給詞裡的字。"""
+    """每个字的开口时间：强制对齐的词时间平均分给词里的字。"""
     out = []
     for w in line["words"]:
         cs = [c for c in w["w"] if c.strip() and c not in "，。！？、 "]
@@ -221,7 +221,7 @@ def char_times(line):
 
 
 def build_events(cfg, tl):
-    """字幕句、攻擊、片尾三拍大字。攻擊＝每位饒舌手第 2、4、6…句（押回去的那句；或歌詞那句寫 "atk": true/false）＋最後一句＝殺招。"""
+    """字幕句、攻击、片尾三拍大字。攻击＝每位饶舌手第 2、4、6…句（押回去的那句；或歌词那句写 "atk": true/false）＋最后一句＝杀招。"""
     lines, attacks = [], []
     en = LANG == "en"
     nz = lambda w: re.sub(r"[^a-z]", "", w.lower().replace("\u00e9", "e"))
@@ -229,7 +229,7 @@ def build_events(cfg, tl):
         L = tl[who]
         for i, l in enumerate(L):
             rh = l.get("rhyme", "")
-            if en:                                           # 英文：韻腳＝一個字，用對齊的最後一個相同的字的開口時間
+            if en:                                           # 英文：韵脚＝一个字，用对齐的最后一个相同的字的开口时间
                 ws = [w for w in l["words"] if rh and nz(w["w"]) == nz(rh.split()[-1])]
                 hits = [ws[-1]["s"]] if ws else []
             else:
@@ -242,23 +242,23 @@ def build_events(cfg, tl):
             atk = (i % 2 == 1) if atk is None else atk
             if (atk or i == len(L) - 1) and hits:
                 attacks.append(dict(who=who, t=hits[-1], n="kill" if i == len(L) - 1 else (l.get("combo", 1) if en else len(rh)),
-                                    until=L[i + 1]["start"] if i + 1 < len(L) and L[i + 1].get("atk") is False else 1e9))   # 下一句是「收」的段落：押韻字不留到那句
+                                    until=L[i + 1]["start"] if i + 1 < len(L) and L[i + 1].get("atk") is False else 1e9))   # 下一句是「收」的段落：押韵字不留到那句
     pos, text = tl["dj"]["pos"], tl["dj"]["text"]
     for key, (a, b) in pos.items():
         if key == "end":
             continue
         mf = HERE / "out" / "voice" / "ming" / f"dj_{key}.json"
-        if en and mf.exists():                               # 英文 DJ：每句的實際起訖（ming_en.py 接句子時記下的）
+        if en and mf.exists():                               # 英文 DJ：每句的实际起讫（ming_en.py 接句子时记下的）
             ms = json.loads(mf.read_text(encoding="utf-8"))
             k_n = min([(b0, k2) for k2, (b0, _) in pos.items() if b0 > a], default=(1e9, None))
-            nxt = k_n[0]                                     # 下一段 DJ 口白（含片尾 end：它沒有字幕行，不會自動截短）
+            nxt = k_n[0]                                     # 下一段 DJ 口白（含片尾 end：它没有字幕行，不会自动截短）
             cut = min([nxt + s["at"][2] for s in cfg["shots"] if isinstance(s["at"], list) and s["at"][:2] == ["dj", k_n[1]]] + [nxt])
-            # 審核回饋 #3：收尾遠景 E01 排在片尾口白前 0.4 秒切進來 → 字幕要在「畫面切鏡」前消失，不是在口白前（以前只看口白，疊了 4 格）
-            for j, m in enumerate(ms):                       # 每段最後一句多留 1.2 秒（結論句「Can you prove it?」只有 0.6 秒），但不跨進下一段口白
+            # 审核回馈 #3：收尾远景 E01 排在片尾口白前 0.4 秒切进来 → 字幕要在「画面切镜」前消失，不是在口白前（以前只看口白，叠了 4 格）
+            for j, m in enumerate(ms):                       # 每段最后一句多留 1.2 秒（结论句「Can you prove it?」只有 0.6 秒），但不跨进下一段口白
                 lines.append(dict(who="J", text=m["en"], zh=m["zh"], start=a + m["start"] - 0.05,
                                   end=min(a + m["end"] + (1.2 if j == len(ms) - 1 else 0.15), nxt - 0.25, cut - 0.08), rh="", hits=[]))
             continue
-        parts = []                                           # DJ 長句照標點拆段，太長再照逗號拆（字才不會縮小，〈向日葵之戰〉使用者看不清）
+        parts = []                                           # DJ 长句照标点拆段，太长再照逗号拆（字才不会缩小，〈向日葵之战〉使用者看不清）
         for x in re.findall(r"[^！？。；：]+[！？。；：]?", text[key]):
             cur = ""
             for y in re.findall(r"[^，]+，?", x):
@@ -269,7 +269,7 @@ def build_events(cfg, tl):
                 parts.append(cur)
         n_all = sum(len(x) for x in parts); t0 = a
         af = HERE / "out" / "voice" / "ming" / "dj_align.json"; times = None
-        if af.exists():                                      # 有逐字對齊（換了口白檔要重跑）就照實際念到的字出字幕
+        if af.exists():                                      # 有逐字对齐（换了口白档要重跑）就照实际念到的字出字幕
             drop = "，。！？；：、《》「」 "; times = []
             for w, st, en_ in json.loads(af.read_text(encoding="utf-8")).get(key, []):
                 cs = [c for c in w if c not in drop]
@@ -289,7 +289,7 @@ def build_events(cfg, tl):
         n_all = sum(len(w) for w in words); acc = 0
         for i, w in enumerate(words):
             beats3.append(dict(text=w, t=a + (b - a) * acc / n_all, row=i)); acc += len(w)
-    lines.sort(key=lambda l: l["start"])                    # 前後句重疊 → 每句最晚在下一句開始前消失
+    lines.sort(key=lambda l: l["start"])                    # 前后句重叠 → 每句最晚在下一句开始前消失
     for x, y in zip(lines, lines[1:]):
         x["end"] = min(x["end"], y["start"] - 0.04)
     return {"lines": lines, "attacks": attacks, "beats3": beats3}
@@ -326,7 +326,7 @@ def render_sub(text, rh, who, lit, pops, now, col, glow):
 
 
 def render_sub_en(text, zh, rh, who, lit, pops, now, col, glow, targets):
-    """英文字幕（大）＋中文（小，SUBS=en 時不顯示）：韻腳字用己方顏色、唱到時砸下來；目標字加紙白淡紫底線（DJ 顏色）。"""
+    """英文字幕（大）＋中文（小，SUBS=en 时不显示）：韵脚字用己方颜色、唱到时砸下来；目标字加纸白淡紫底线（DJ 颜色）。"""
     size = 60
     while font(size).getlength(text) > 1700 and size > 36:
         size -= 2
@@ -336,7 +336,7 @@ def render_sub_en(text, zh, rh, who, lit, pops, now, col, glow, targets):
     x0 = (im.width - tw) / 2; y0 = 22
     low = text.lower()
     pos = low.rfind(rh.lower()) if rh else -1
-    if pos >= 0 and lit:                                     # 韻腳字另外畫：先畫前後文字，避免放大時疊在原本的字上
+    if pos >= 0 and lit:                                     # 韵脚字另外画：先画前后文字，避免放大时叠在原本的字上
         d.text((x0, y0), text[:pos], font=f, fill=(255, 255, 255, 255), stroke_width=6, stroke_fill=(0, 0, 0, 255))
         d.text((x0 + f.getlength(text[:pos + len(rh)]), y0), text[pos + len(rh):], font=f, fill=(255, 255, 255, 255), stroke_width=6,
                stroke_fill=(0, 0, 0, 255))
@@ -398,7 +398,7 @@ def big_word(text, k, g):
     return im
 
 
-COMBO = {"kill": "殺招！", 1: "押韻！", 2: "雙押！", 3: "三押！", 4: "四押！", 5: "五押！", 6: "六押！"}
+COMBO = {"kill": "杀招！", 1: "押韵！", 2: "双押！", 3: "三押！", 4: "四押！", 5: "五押！", 6: "六押！"}
 COMBO_EN = {"kill": "KILL SHOT!", 1: "RHYME!", 2: "DOUBLE!", 3: "TRIPLE!"}
 
 
@@ -415,7 +415,7 @@ def combo_badge(n, g, k):
 
 
 def attack_layer(who, k, col, glow, close=False):
-    """k＝攻擊開始後第幾格：0–5 月牙斬飛行（拖尾＋速度線），6 起爆開（閃色＋放射線＋衝擊環＋火花）。A 從左往右、B 從右往左；高度在胸口以下。"""
+    """k＝攻击开始后第几格：0–5 月牙斩飞行（拖尾＋速度线），6 起爆开（闪色＋放射线＋冲击环＋火花）。A 从左往右、B 从右往左；高度在胸口以下。"""
     lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
     c, g = col[who], glow[who]; dirn = 1 if who == "A" else -1
     sx, ex = (300, W - 420) if who == "A" else (W - 300, 420); cy = 740
@@ -457,10 +457,10 @@ def attack_layer(who, k, col, glow, close=False):
 
 
 def punch_plan(shots, lines):
-    """長演唱鏡（> 3.3 秒、單人、沒字卡）在鏡內每句開頭交替推近（ERB 約 2 秒一刀，不用多生 H3）。"""
+    """长演唱镜（> 3.3 秒、单人、没字卡）在镜内每句开头交替推近（ERB 约 2 秒一刀，不用多生 H3）。"""
     plan = []
     for sh in shots:
-        if sh["kind"] != "sing" or sh["end"] - sh["start"] <= 3.3 or len(sh["subj"]) > 1 or sh.get("gfx") or sh.get("card") or sh.get("dist") == "CU":   # 特寫再推會切到頭頂（〈向日葵之戰〉P11、Z19）
+        if sh["kind"] != "sing" or sh["end"] - sh["start"] <= 3.3 or len(sh["subj"]) > 1 or sh.get("gfx") or sh.get("card") or sh.get("dist") == "CU":   # 特写再推会切到头顶（〈向日葵之战〉P11、Z19）
             continue
         starts = sorted(l["start"] + 0.05 for l in lines if sh["start"] + 0.6 < l["start"] + 0.05 < sh["end"] - 0.8)
         if not starts:
@@ -490,7 +490,7 @@ def render_fx(cfg, shots, ev, src, dst, wav, post):
     targets = {re.sub(r"[^a-z]", "", w.lower().replace("\u00e9", "e")) for w in cfg.get("targets", [])}
     punches = punch_plan(shots, lines)
     cap = cv2.VideoCapture(str(src))
-    for p_ in punches:                                       # 推近中心＝那段中間格最大的臉
+    for p_ in punches:                                       # 推近中心＝那段中间格最大的脸
         cap.set(cv2.CAP_PROP_POS_FRAMES, int((p_["t0"] + p_["t1"]) / 2 * FPS)); ok, fr0 = cap.read()
         cx, cy = W / 2, H * 0.42
         if ok:
@@ -498,8 +498,8 @@ def render_fx(cfg, shots, ev, src, dst, wav, post):
             if fs_:
                 x, y, w_, h_ = max(fs_, key=lambda f: f[2] * f[3]); cx, cy = x + w_ / 2, y + h_ * 0.7
         p_["cx"], p_["cy"] = float(cx), float(cy)
-        # 審核回饋 #4：推近不能切到頭頂（舊 A11 在 102 秒推近，頭頂被裁掉）。整段取 5 格量「髮頂」＝臉框上緣再往上 0.45 個臉高，
-        # 裁切框上緣不得低於髮頂上方 3%；整段找不到臉就不推近。
+        # 审核回馈 #4：推近不能切到头顶（旧 A11 在 102 秒推近，头顶被裁掉）。整段取 5 格量「发顶」＝脸框上缘再往上 0.45 个脸高，
+        # 裁切框上缘不得低于发顶上方 3%；整段找不到脸就不推近。
         tops = []
         for k in range(5):
             cap.set(cv2.CAP_PROP_POS_FRAMES, int((p_["t0"] + (p_["t1"] - p_["t0"]) * (k + 0.5) / 5) * FPS)); ok, frk = cap.read()
@@ -512,7 +512,7 @@ def render_fx(cfg, shots, ev, src, dst, wav, post):
     flash = set(cfg.get("flash_scenes", []))
     cuts = [b["start"] for a, b in zip(shots, shots[1:]) if a["scene"] != b["scene"] and b["scene"] in flash]
     (Path(post) / "fx_events.json").write_text(json.dumps({**ev, "cuts": cuts, "punches": punches}, ensure_ascii=False, indent=1), encoding="utf-8")
-    for a in attacks:                                        # 押韻字不疊到別人的鏡頭（〈瑜亮之戰〉v6「三押！」殘留到孔明反應鏡）
+    for a in attacks:                                        # 押韵字不叠到别人的镜头（〈瑜亮之战〉v6「三押！」残留到孔明反应镜）
         nx = next((s for s in shots if a["t"] < s["start"] < a["t"] + 1 and a["who"] not in s.get("subj", [])), None)
         if nx:
             a["until"] = min(a["until"], nx["start"])
@@ -532,7 +532,7 @@ def render_fx(cfg, shots, ev, src, dst, wav, post):
             break
         t = fi / FPS
         fr = np.frombuffer(raw, np.uint8).reshape(H, W, 3).astype(np.float32)
-        for c in cuts:                                       # 切進閃回：閃白＋速度放大
+        for c in cuts:                                       # 切进闪回：闪白＋速度放大
             k = (t - c) * FPS
             if -2 <= k < 6:
                 z = 1.0 + 0.12 * max(0.0, 1 - max(k, 0) / 6)
@@ -592,7 +592,7 @@ def render_fx(cfg, shots, ev, src, dst, wav, post):
             k = (t - b["t"]) * FPS
             if k >= 0:
                 bw = big_word(b["text"], k, glow["J"]) if k < 6 else cache.setdefault(("bw", b["text"]), big_word(b["text"], 99, glow["J"]))
-                img.alpha_composite(bw, (70, (40 + b["row"] * 115) if LANG == "en" else ((90 + b["row"] * 165) if len(beats3) <= 3 else (50 + b["row"] * 145))))   # 4 行時收緊，第 4 行不碰投票卡（〈Bravo 之戰〉v2）
+                img.alpha_composite(bw, (70, (40 + b["row"] * 115) if LANG == "en" else ((90 + b["row"] * 165) if len(beats3) <= 3 else (50 + b["row"] * 145))))   # 4 行时收紧，第 4 行不碰投票卡（〈Bravo 之战〉v2）
         for a in attacks:
             k = (t - a["t"]) * FPS
             if 0 <= k < 24 and t < a["until"]:

@@ -1,12 +1,12 @@
-"""每秒一格審片：把成片每秒截一張，拼成一張 12 格（4×3、每格 480 寬）的總表，每格標「秒數｜鏡號＋鏡內秒數」。
-一張一張看：背景突然冒人、臉或手糊掉、道具不連戲、牆上冒出旗子標語，都要修，沒修的鏡頭不能用。
-格子比一般縮圖大，看得出背景的人。
+"""每秒一格审片：把成片每秒截一张，拼成一张 12 格（4×3、每格 480 宽）的总表，每格标「秒数｜镜号＋镜内秒数」。
+一张一张看：背景突然冒人、脸或手糊掉、道具不连戏、墙上冒出旗子标语，都要修，没修的镜头不能用。
+格子比一般缩图大，看得出背景的人。
 
 用法：
-  python tools/framecheck.py <成片.mp4> [--tl timeline.json] [--out 資料夾] [--cols 4] [--rows 3] [--w 480] [--fps 1]
-  python tools/framecheck.py h3/K05/clip.mp4 --fps 2      → 單一鏡半秒一格
-輸出 <out>/fc_01.jpg、fc_02.jpg…（預設 out＝影片旁邊的 fc_<檔名>/）。
-timeline.json 格式：{"shots": {"鏡號": {"start": 秒, "dur": 秒}, ...}}；沒給就只標秒數。
+  python tools/framecheck.py <成片.mp4> [--tl timeline.json] [--out 资料夹] [--cols 4] [--rows 3] [--w 480] [--fps 1]
+  python tools/framecheck.py h3/K05/clip.mp4 --fps 2      → 单一镜半秒一格
+输出 <out>/fc_01.jpg、fc_02.jpg…（预设 out＝影片旁边的 fc_<档名>/）。
+timeline.json 格式：{"shots": {"镜号": {"start": 秒, "dur": 秒}, ...}}；没给就只标秒数。
 """
 import argparse
 import json
@@ -19,7 +19,7 @@ from PIL import Image, ImageDraw, ImageFont
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from fonts import font  # noqa: E402
 
-ap = argparse.ArgumentParser(description="每秒一格審片總表")
+ap = argparse.ArgumentParser(description="每秒一格审片总表")
 ap.add_argument("video"); ap.add_argument("--tl"); ap.add_argument("--out")
 ap.add_argument("--cols", type=int, default=4); ap.add_argument("--rows", type=int, default=3)
 ap.add_argument("--w", type=int, default=480); ap.add_argument("--fps", type=float, default=1.0)

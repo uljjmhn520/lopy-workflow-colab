@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # This script imports ComfyUI and ComfyUI-FlashVSR_Ultra_Fast (GPL-3.0) code at runtime, so it is licensed GPL-3.0-or-later.
-"""FlashVSR v1.1 x2（不經 ComfyUI 伺服器，直接載入節點程式）。H3 venv：python flashvsr_cli.py in.mp4 out_dir"""
+"""FlashVSR v1.1 x2（不经 ComfyUI 伺服器，直接载入节点程式）。H3 venv：python flashvsr_cli.py in.mp4 out_dir"""
 import importlib.util
 import json
 import subprocess

@@ -14,13 +14,13 @@ if not KEY:
     raise SystemExit("img25: set OPENAI_API_KEY (or OPENAI_KEY_FILE)")
 MODEL = "gpt-image-2.5-sunburst"
 SIZE = "1344x768"
-# 2026-09-30 全域預設改 medium（輸出 token 約 high 的 1/4；臉部特寫肉眼與 high 差異很小）。
-# 定稿或臉不夠像時：環境變數 IMG25_QUALITY=high；純探索可用 low（約 1/9）。預設每次只生 1 張（n=1）。
+# 2026-09-30 全域预设改 medium（输出 token 约 high 的 1/4；脸部特写肉眼与 high 差异很小）。
+# 定稿或脸不够像时：环境变数 IMG25_QUALITY=high；纯探索可用 low（约 1/9）。预设每次只生 1 张（n=1）。
 import os
 QUALITY = os.environ.get("IMG25_QUALITY", "medium")
-# 2026-10-06 參考圖降本：送出前在記憶體裡把每張參考圖縮成約一半面積（邊長 ×0.707，原檔不動）。
-# 實測定妝表 1296→680 輸入 token、臉部目視無差。
-# 已經小於 REF_MIN_PIXELS 的圖不縮。關閉：IMG25_REF_SCALE=1。日後若發現角色不像參考圖，先用 =1 重生比對。
+# 2026-10-06 参考图降本：送出前在记忆体里把每张参考图缩成约一半面积（边长 ×0.707，原档不动）。
+# 实测定妆表 1296→680 输入 token、脸部目视无差。
+# 已经小于 REF_MIN_PIXELS 的图不缩。关闭：IMG25_REF_SCALE=1。日后若发现角色不像参考图，先用 =1 重生比对。
 REF_SCALE = float(os.environ.get("IMG25_REF_SCALE", "0.707"))
 REF_MIN_PIXELS = 1024 * 576
 

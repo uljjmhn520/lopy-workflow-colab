@@ -1,11 +1,11 @@
-"""逐鏡抓「H3 自己切鏡／構圖漂走」：每 0.5 秒取一格算跟首幀的相關係數，最低值 < 0.7 就標 CHECK，要人看。
-H3 常在 1–2.4 秒自己切到別的構圖（原專案常切到牆上掛旗子、貼紅色標語的教室），沒台詞的短反應鏡最常發生。
-抓到的鏡：限制句加「never cuts to another shot」「no flags, banners or national emblems」，尾幀鎖首幀重抽；
-台詞講完才切的，剪掉切鏡之後的部分就好。走位多的鏡會誤報，用總表看。
+"""逐镜抓「H3 自己切镜／构图漂走」：每 0.5 秒取一格算跟首帧的相关系数，最低值 < 0.7 就标 CHECK，要人看。
+H3 常在 1–2.4 秒自己切到别的构图（原专案常切到墙上挂旗子、贴红色标语的教室），没台词的短反应镜最常发生。
+抓到的镜：限制句加「never cuts to another shot」「no flags, banners or national emblems」，尾帧锁首帧重抽；
+台词讲完才切的，剪掉切镜之后的部分就好。走位多的镜会误报，用总表看。
 
-用法：python tools/clipcheck.py <資料夾> [鏡號...]
-  資料夾裡有 h3/<鏡號>/clip.mp4 就查那些；沒有就查資料夾裡所有 .mp4（鏡號＝檔名）。
-輸出 <資料夾>/review/clipcheck.jpg（每鏡 0%、50%、100% 三格）與 clipcheck.json（每鏡的相關係數序列）。
+用法：python tools/clipcheck.py <资料夹> [镜号...]
+  资料夹里有 h3/<镜号>/clip.mp4 就查那些；没有就查资料夹里所有 .mp4（镜号＝档名）。
+输出 <资料夹>/review/clipcheck.jpg（每镜 0%、50%、100% 三格）与 clipcheck.json（每镜的相关系数序列）。
 """
 import json
 import subprocess

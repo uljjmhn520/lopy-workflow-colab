@@ -1,5 +1,5 @@
-"""共用本機 GPU 時跑 make_battle 的 stage：不呼叫 ComfyUI /free（別的 session 的模型不卸載）。
-用法：python run_shared.py songs dj audio    （SHARED_CPU=1＝聽寫、分人聲改用 CPU）"""
+"""共用本机 GPU 时跑 make_battle 的 stage：不呼叫 ComfyUI /free（别的 session 的模型不卸载）。
+用法：python run_shared.py songs dj audio    （SHARED_CPU=1＝听写、分人声改用 CPU）"""
 import os
 import sys
 if os.environ.get("SHARED_CPU"):

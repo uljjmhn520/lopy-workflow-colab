@@ -1,9 +1,9 @@
-"""Suno 局部重唱（Kie replace-section）：歌已定稿、只有幾個字唱歪時用（同音字當歌詞）。重生一段 ≥10 秒，之後只把那幾個字剪回定稿。
-環境變數 SUNO_PROMPT 換掉預設的咬字提示、SUNO_PART 給整段送件歌詞（含段落標籤，換行寫 \n），用在氣音段、段落標籤不是 Verse 的地方。
+"""Suno 局部重唱（Kie replace-section）：歌已定稿、只有几个字唱歪时用（同音字当歌词）。重生一段 ≥10 秒，之后只把那几个字剪回定稿。
+环境变数 SUNO_PROMPT 换掉预设的咬字提示、SUNO_PART 给整段送件歌词（含段落标签，换行写 \n），用在气音段、段落标签不是 Verse 的地方。
 用法：
-  python suno_replace.py submit <A|B> <標籤> <開始秒> <結束秒> <原句> <新句> [<原句2> <新句2> …] → out/suno/tasks_<標籤>.json（每次 2 版）
-  python kie_suno.py poll <標籤>                                                                   → out/suno/<歌名>_<標籤>_v1.mp3、_v2.mp3
-來源（定稿的送件標籤:第幾版）要指定：環境變數 SUNO_SRC=f1:1，或改下面的 SRC。新句只用在送給 Suno 的歌詞，battle.json 歌詞不改。"""
+  python suno_replace.py submit <A|B> <标签> <开始秒> <结束秒> <原句> <新句> [<原句2> <新句2> …] → out/suno/tasks_<标签>.json（每次 2 版）
+  python kie_suno.py poll <标签>                                                                   → out/suno/<歌名>_<标签>_v1.mp3、_v2.mp3
+来源（定稿的送件标签:第几版）要指定：环境变数 SUNO_SRC=f1:1，或改下面的 SRC。新句只用在送给 Suno 的歌词，battle.json 歌词不改。"""
 import json
 import os
 import sys
@@ -11,11 +11,11 @@ import time
 
 import kie_suno as k
 
-SRC = {"A": ("a1", 0), "B": ("b1", 0)}   # 定稿的送件標籤、第幾版
+SRC = {"A": ("a1", 0), "B": ("b1", 0)}   # 定稿的送件标签、第几版
 
 
 def submit(who, tag, s0, s1, *pairs):
-    src = os.environ.get("SUNO_SRC", "").split(":") if os.environ.get("SUNO_SRC") else SRC[who]   # SUNO_SRC=f1:1 指定來源版（定稿本身是重唱版時用）
+    src = os.environ.get("SUNO_SRC", "").split(":") if os.environ.get("SUNO_SRC") else SRC[who]   # SUNO_SRC=f1:1 指定来源版（定稿本身是重唱版时用）
     t = json.loads((k.OUT / f"tasks_{src[0]}.json").read_text(encoding="utf-8"))
     aid = json.loads(t["raw"]["resultJson"])["data"][int(src[1])]["id"]
     full = t["input"].get("full_lyrics") or t["input"]["lyrics"]; part = []

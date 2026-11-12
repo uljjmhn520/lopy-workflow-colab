@@ -1,10 +1,10 @@
-"""選用：用 Kie.ai 的 Suno V6 API 生兩位饒舌手的歌（沒有 Kie 的話，把 out/songtext/ 的文字貼到 Suno 網頁的 Custom 模式也一樣）。
-金鑰：環境變數 KIE_API_KEY（或 KIE_KEY_FILE＝存金鑰的文字檔）。每次送件生 2 版，約 12 點（2026-10 價格）。
+"""选用：用 Kie.ai 的 Suno V6 API 生两位饶舌手的歌（没有 Kie 的话，把 out/songtext/ 的文字贴到 Suno 网页的 Custom 模式也一样）。
+金钥：环境变数 KIE_API_KEY（或 KIE_KEY_FILE＝存金钥的文字档）。每次送件生 2 版，约 12 点（2026-10 价格）。
 用法（先跑 make_battle.py songtext）：
-  python kie_suno.py submit A [標籤]   → out/suno/tasks_<標籤>.json（標籤預設 a1）
-  python kie_suno.py poll <標籤>       → out/suno/<歌名>_<標籤>_v1.mp3、_v2.mp3
-兩人各生一首（同一首歌分兩人＝同一個聲音），挑好的複製到 song/A.mp3、song/B.mp3。
-⚠ 歌詞要跟 battle.json 一字不差（songs 階段靠它對齊）；改了歌詞就重跑 songtext 再送。"""
+  python kie_suno.py submit A [标签]   → out/suno/tasks_<标签>.json（标签预设 a1）
+  python kie_suno.py poll <标签>       → out/suno/<歌名>_<标签>_v1.mp3、_v2.mp3
+两人各生一首（同一首歌分两人＝同一个声音），挑好的复制到 song/A.mp3、song/B.mp3。
+⚠ 歌词要跟 battle.json 一字不差（songs 阶段靠它对齐）；改了歌词就重跑 songtext 再送。"""
 import json
 import os
 import sys
@@ -21,7 +21,7 @@ API = "https://api.kie.ai/api/v1"
 
 def req(path, data=None, params=""):
     if not KEY:
-        sys.exit("設定環境變數 KIE_API_KEY（或 KIE_KEY_FILE）")
+        sys.exit("设定环境变数 KIE_API_KEY（或 KIE_KEY_FILE）")
     r = urllib.request.Request(API + path + params, data=json.dumps(data).encode() if data is not None else None,
                                headers={"Authorization": f"Bearer {KEY}", "Content-Type": "application/json", "User-Agent": "Mozilla/5.0"})
     with urllib.request.urlopen(r, timeout=60) as f:
@@ -31,9 +31,9 @@ def req(path, data=None, params=""):
 def submit(who, tag="a1"):
     r = CFG["rappers"][who]
     lyr = (HERE / "out" / "songtext" / f"suno_{who}_lyrics.txt").read_text(encoding="utf-8")
-    style = os.environ.get("SUNO_STYLE") or r["suno_style"]     # 換人聲時用環境變數覆蓋風格
+    style = os.environ.get("SUNO_STYLE") or r["suno_style"]     # 换人声时用环境变数覆盖风格
     if len(style) > 1000:
-        sys.exit(f"風格 {len(style)} 字元，超過 Suno 上限 1000")
+        sys.exit(f"风格 {len(style)} 字元，超过 Suno 上限 1000")
     inp = {"custom_mode": True, "instrumental": False, "model": "V6", "title": r.get("suno_title", f"{CFG['title']}_{r['name']}"),
            "lyrics": lyr, "style": style, "negative_tags": os.environ.get("SUNO_NEG") or r.get("suno_negative", ""), "vocal_gender": r.get("vocal_gender", "m"),
            "duration": int(r.get("suno_duration", 120))}

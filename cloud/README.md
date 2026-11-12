@@ -1,179 +1,179 @@
-# cloud/：用 Google Colab 跑 H3（本機跑不動的人用）
+# cloud/：用 Google Colab 跑 H3（本机跑不动的人用）
 
-**做法：本機準備、雲端只跑 H3。** 劇本、首幀、配音、剪接在你的電腦做；H3 影片整批送到 Google Colab 的 G4 顯卡跑，跑完下載回來。素材和成品一直都在你的硬碟，Colab 機器一關掉就清空。
-本機連配音都跑不動（沒有 NVIDIA 顯卡、Mac）的人，可以用**全雲端模式**：整套環境裝在 Colab 上，整支片在雲端做完再下載。
+**做法：本机准备、云端只跑 H3。** 剧本、首帧、配音、剪接在你的电脑做；H3 影片整批送到 Google Colab 的 G4 显卡跑，跑完下载回来。素材和成品一直都在你的硬碟，Colab 机器一关掉就清空。
+本机连配音都跑不动（没有 NVIDIA 显卡、Mac）的人，可以用**全云端模式**：整套环境装在 Colab 上，整支片在云端做完再下载。
 
-> 所有數字都是 2026-10-10 在 Colab（Google AI Pro 帳號，每月 200 運算單元）實測。Colab 的方案、價格、可用顯卡隨時會變。
+> 所有数字都是 2026-10-10 在 Colab（Google AI Pro 帐号，每月 200 运算单元）实测。Colab 的方案、价格、可用显卡随时会变。
 
-## ⚠️ 先讀：H3 授權與機房位置
+## ⚠️ 先读：H3 授权与机房位置
 
-- MiniMax H3 授權（第 I.5、V.4 條）**排除在美國、歐盟、英國、南韓使用**（含複製、執行、散布、展示 H3 與其產出）。
-- 實測 Colab **G4 開機 30 次：美國 18 次（俄亥俄 17、拉斯維加斯 1）、歐盟荷蘭 12 次，從沒分到亞洲**；L4／A100 偶爾分到新加坡，但跑 H3 又慢又貴。
-- 授權**沒有定義「使用」看使用者所在地還是機器所在地**；照字面，權重在美國／歐盟機器上被複製、執行，比較可能被認為不在授權範圍內。
-- **本工具預設照常使用這些機房，不會擋、也不會換機器**，`colab_h3.py` 只在每次開機時顯示機房國家與警語；風險由你自負（這裡不是法律意見）。想確定可以照授權第 II 條寫信問 MiniMax。
-- 想避開的替代做法：台灣或日本機房的雲端 GPU（例如台灣 GPUtw 的 RTX 5090／RTX PRO 6000、RunPod 日本 AP-JP-1），用同一套 `cloud/vm/setup_h3.py` 自己裝即可（未在本 repo 實測）。
+- MiniMax H3 授权（第 I.5、V.4 条）**排除在美国、欧盟、英国、南韩使用**（含复制、执行、散布、展示 H3 与其产出）。
+- 实测 Colab **G4 开机 30 次：美国 18 次（俄亥俄 17、拉斯维加斯 1）、欧盟荷兰 12 次，从没分到亚洲**；L4／A100 偶尔分到新加坡，但跑 H3 又慢又贵。
+- 授权**没有定义「使用」看使用者所在地还是机器所在地**；照字面，权重在美国／欧盟机器上被复制、执行，比较可能被认为不在授权范围内。
+- **本工具预设照常使用这些机房，不会挡、也不会换机器**，`colab_h3.py` 只在每次开机时显示机房国家与警语；风险由你自负（这里不是法律意见）。想确定可以照授权第 II 条写信问 MiniMax。
+- 想避开的替代做法：台湾或日本机房的云端 GPU（例如台湾 GPUtw 的 RTX 5090／RTX PRO 6000、RunPod 日本 AP-JP-1），用同一套 `cloud/vm/setup_h3.py` 自己装即可（未在本 repo 实测）。
 
-## 1. 準備（一次）
+## 1. 准备（一次）
 
-1. 有一個 **Google AI 方案**（AI Pro 每月約 200 運算單元；**免費試用期間不發**）或在 Colab 買**隨用隨付**運算單元（100 個 US$10.49）。
-2. 安裝 Colab CLI（Google 官方，Apache-2.0）：
+1. 有一个 **Google AI 方案**（AI Pro 每月约 200 运算单元；**免费试用期间不发**）或在 Colab 买**随用随付**运算单元（100 个 US$10.49）。
+2. 安装 Colab CLI（Google 官方，Apache-2.0）：
    ```
    uv tool install google-colab-cli
    ```
-3. **Windows 一定要修補**（官方只支援 Linux／macOS，Windows 上連 `colab version` 都會因 `import termios` 當掉）：
+3. **Windows 一定要修补**（官方只支援 Linux／macOS，Windows 上连 `colab version` 都会因 `import termios` 当掉）：
    ```
    python cloud/colab_cli_windows_patch.py
    ```
-   只包住兩行 import（會留備份 `console.py.bak`），之後 new／exec／upload／download／stop 都正常；`colab console`、`colab ssh` 仍不能用（本工具不用）。更新 CLI 後要重跑。
-4. 登入（要你自己在終端機做，瀏覽器裡選有方案的那個 Google 帳號、把授權碼貼回終端機）：
+   只包住两行 import（会留备份 `console.py.bak`），之后 new／exec／upload／download／stop 都正常；`colab console`、`colab ssh` 仍不能用（本工具不用）。更新 CLI 后要重跑。
+4. 登入（要你自己在终端机做，浏览器里选有方案的那个 Google 帐号、把授权码贴回终端机）：
    ```
    colab usage
    ```
-5. 確認：`python cloud/colab_h3.py check` 會顯示餘額。
+5. 确认：`python cloud/colab_h3.py check` 会显示余额。
 
-> **預設 `start`＝完整安裝**（2026-10-11 起）：跟第一份 repo 完整版（32GB 顯卡＋64GB 記憶體）一樣，語音三環境、ComfyUI（H3、Qwen、Music 3、FlashVSR、YuE2 歌曲、Ming-3.0-TTS 配音）、中文字型全部裝，約 10.5 分鐘、約 1.5 單元；G4 有 96GB 顯存，完整版的設定都跑得動。只要 H3 的人加 `--h3-only`（約 3.7 分鐘）。
-> **兩種安裝都開 2 個 ComfyUI**（2026-10-11 起，完整安裝原本只開 1 個）：各 `--reserve-vram 46`、第二個晚 30 秒開工＝實測最快（每小時 123 支，見 §4）。要單一個就 `start --instances 1`（完整安裝用環境變數 `H3_INSTANCES`）。開完可以看 `/content/h3_state.json` 有沒有列出 2 個。
+> **预设 `start`＝完整安装**（2026-10-11 起）：跟第一份 repo 完整版（32GB 显卡＋64GB 记忆体）一样，语音三环境、ComfyUI（H3、Qwen、Music 3、FlashVSR、YuE2 歌曲、Ming-3.0-TTS 配音）、中文字型全部装，约 10.5 分钟、约 1.5 单元；G4 有 96GB 显存，完整版的设定都跑得动。只要 H3 的人加 `--h3-only`（约 3.7 分钟）。
+> **两种安装都开 2 个 ComfyUI**（2026-10-11 起，完整安装原本只开 1 个）：各 `--reserve-vram 46`、第二个晚 30 秒开工＝实测最快（每小时 123 支，见 §4）。要单一个就 `start --instances 1`（完整安装用环境变数 `H3_INSTANCES`）。开完可以看 `/content/h3_state.json` 有没有列出 2 个。
 
-## 2. 只有 H3 上雲端（本機能做首幀和配音）
-
-```
-python cloud/colab_h3.py start --h3-only           # 開 G4、只裝 ComfyUI＋H3（約 3.5–4 分鐘）、開 2 個 ComfyUI
-python cloud/colab_h3.py batch S01/spec.json S02/spec.json ...   # 打包上傳 → 雲端跑 → 成品下載回各 spec 旁邊
-python cloud/colab_h3.py keepalive --minutes 20    # （選用）審片時保住機器
-python cloud/colab_h3.py stop                      # 確定不再需要 H3 才關（見下方「什麼時候關機」）
-```
-- **什麼時候關機（2026-10-11 實作定案）**：拍完 → 自己（或 agent）看接觸表 → 要重拍就直接送到**同一台**，中間**不要關機、不要用 `--stop-after`**（重開只裝 H3 要約 4 分鐘、完整安裝約 10 分鐘，比開著等更花時間）。**看完重拍、確定都不需要再用 H3，要交給人工審片了，才 `stop`。** 審片超過約 15 分鐘才回來就先 `keepalive`，否則閒置約 20 分鐘會被收回。
-- `batch` 吃的就是 `tools/h3_shot.py` 的分鏡 JSON；首幀、配音、參考圖等檔案會自動一起打包（相對路徑以 spec 所在資料夾為準）。成品放在 spec 旁邊：檔名是 `spec.json` 就放同一個資料夾，否則放在同名資料夾。
-- **多鏡範本自動判斷**：`pipeline/template_local/make_film.py` 偵測到本機顯卡跑不動 H3（不到 15GB 顯存或 30GB 記憶體）時，h3／amb 兩步會自動整批送到 Colab；也可以用 `set H3_BACKEND=colab`（或 `local`、`both`＝本機＋Colab 一起跑，見 §3b）強制。只跑 h3 時本機不必開 ComfyUI。
-- 沒開機就直接 `batch` 會自動先 `start`（預設完整安裝；只要 H3 就 `batch --h3-only …`）；加 `--stop-after` 跑完自動關機——**只用在最後一批**（確定不會再重拍），審片重拍的來回中間不要用。
-
-## 3. 全雲端（本機什麼都跑不動）
+## 2. 只有 H3 上云端（本机能做首帧和配音）
 
 ```
-python cloud/colab_h3.py start                     # 預設＝完整安裝：語音三環境、ComfyUI（H3、Qwen、Music 3、FlashVSR、YuE2、Ming TTS）、中文字型（舊名 full-setup 也可以）
-python cloud/colab_h3.py smoke                     # 跑 setup/smoke_test.py，結果下載到 setup/smoke_out_colab/
-python cloud/colab_h3.py film pipeline/template_local chars masters frames   # 在雲端跑 make_film.py 指定階段，out/ 同步回本機
+python cloud/colab_h3.py start --h3-only           # 开 G4、只装 ComfyUI＋H3（约 3.5–4 分钟）、开 2 个 ComfyUI
+python cloud/colab_h3.py batch S01/spec.json S02/spec.json ...   # 打包上传 → 云端跑 → 成品下载回各 spec 旁边
+python cloud/colab_h3.py keepalive --minutes 20    # （选用）审片时保住机器
+python cloud/colab_h3.py stop                      # 确定不再需要 H3 才关（见下方「什么时候关机」）
+```
+- **什么时候关机（2026-10-11 实作定案）**：拍完 → 自己（或 agent）看接触表 → 要重拍就直接送到**同一台**，中间**不要关机、不要用 `--stop-after`**（重开只装 H3 要约 4 分钟、完整安装约 10 分钟，比开著等更花时间）。**看完重拍、确定都不需要再用 H3，要交给人工审片了，才 `stop`。** 审片超过约 15 分钟才回来就先 `keepalive`，否则闲置约 20 分钟会被收回。
+- `batch` 吃的就是 `tools/h3_shot.py` 的分镜 JSON；首帧、配音、参考图等档案会自动一起打包（相对路径以 spec 所在资料夹为准）。成品放在 spec 旁边：档名是 `spec.json` 就放同一个资料夹，否则放在同名资料夹。
+- **多镜范本自动判断**：`pipeline/template_local/make_film.py` 侦测到本机显卡跑不动 H3（不到 15GB 显存或 30GB 记忆体）时，h3／amb 两步会自动整批送到 Colab；也可以用 `set H3_BACKEND=colab`（或 `local`、`both`＝本机＋Colab 一起跑，见 §3b）强制。只跑 h3 时本机不必开 ComfyUI。
+- 没开机就直接 `batch` 会自动先 `start`（预设完整安装；只要 H3 就 `batch --h3-only …`）；加 `--stop-after` 跑完自动关机——**只用在最后一批**（确定不会再重拍），审片重拍的来回中间不要用。
+
+## 3. 全云端（本机什么都跑不动）
+
+```
+python cloud/colab_h3.py start                     # 预设＝完整安装：语音三环境、ComfyUI（H3、Qwen、Music 3、FlashVSR、YuE2、Ming TTS）、中文字型（旧名 full-setup 也可以）
+python cloud/colab_h3.py smoke                     # 跑 setup/smoke_test.py，结果下载到 setup/smoke_out_colab/
+python cloud/colab_h3.py film pipeline/template_local chars masters frames   # 在云端跑 make_film.py 指定阶段，out/ 同步回本机
 python cloud/colab_h3.py film pipeline/template_local voices h3 amb edl music ending cut review
-python cloud/colab_h3.py film pipeline/my_battle yue songs dj audio   # 饒舌對決（資料夾有 battle.json 就改跑 make_battle.py），見 pipeline/template_battle/README.md
+python cloud/colab_h3.py film pipeline/my_battle yue songs dj audio   # 饶舌对决（资料夹有 battle.json 就改跑 make_battle.py），见 pipeline/template_battle/README.md
 python cloud/colab_h3.py stop
 ```
-- **2026-10-10 新 agent 實測（只看本 repo、從零）**：`full-setup` **約 10.5 分鐘**（VM 端 540 秒；10 份模型清單約 8 分鐘）→ `smoke` 約 13 分鐘 → 範本片〈被狗吃掉的作業〉分三段 `film` 共約 28 分鐘，成片 38.5 秒 1080p、−15.9 LUFS，自審全過；G4 開機到關機約 54 分鐘、**約 8 個運算單元**。Colab 硬碟約 236GB，裝完剩約 40–80GB。
-- 全雲端模式**現在預設也開 2 個 ComfyUI**（2026-10-11 起；之前只有 1 個，還要跟 Qwen、Music 3 輪流換模型，H3 每鏡約 70 秒）。`film` 跑到 h3／amb 時用 2 個 ComfyUI 錯開跑（`cloud/vm/parallel_h3.py`，`H3_PARALLEL=2`）。2026-10-11 實戰：完整安裝後 `batch` 25 鏡 1 個 ComfyUI 跑 1594 秒（含上傳下載）→ 之後改 2 個。
-- 範本可以直接跑 `pipeline/template_local`；做自己的片時照 `pipeline/template_local/README.md` 複製成 `pipeline/<片名>/`，再 `film pipeline/<片名> …`（資料夾一定要在 repo 裡面）。
-- 每個人工關卡（首幀、H3 接觸表、成片）之間，`film` 會把 `out/` 下載回來給你看；改了要重做的檔案刪掉，再跑下一段，`film` 會把整個片子資料夾重新上傳，從斷點接著做。
-- **本機設的 `ONLY`（只重做某幾鏡）、`ALLOW_REVIEW`、`UPSCALE` 會自動帶到 VM**；其他設定用 `--env KEY=VALUE`（例：`film pipeline/template_local h3 --env ONLY=S3`）。
-- **VM 被收回（閒置約 20 分鐘）或你 `stop` 之後**：重新 `full-setup`（約 10 分鐘、約 1.5 單元），再 `film` 同一個資料夾就會從斷點接著做。
-- 注意：雲端跑出來的 `out/*.json`（`voice_picks`、`amb`、`music_pick`、`edl`）裡存的是 `/content/...` 的雲端路徑；要在本機接著跑 `edl`／`cut` 得重跑前面那幾段，建議全程在雲端做完。
-- smoke_test 在 Linux 上自動跳過 `rtx_vsr`（只有 Windows 有），其餘全部通過；Linux 的放大用 lanczos（`UPSCALE=lanczos`，預設）或 FlashVSR（`UPSCALE=flashvsr`）。片尾名單會依實際做法自動寫成「在 Google Colab 執行」、放大工具照實列名。
+- **2026-10-10 新 agent 实测（只看本 repo、从零）**：`full-setup` **约 10.5 分钟**（VM 端 540 秒；10 份模型清单约 8 分钟）→ `smoke` 约 13 分钟 → 范本片〈被狗吃掉的作业〉分三段 `film` 共约 28 分钟，成片 38.5 秒 1080p、−15.9 LUFS，自审全过；G4 开机到关机约 54 分钟、**约 8 个运算单元**。Colab 硬碟约 236GB，装完剩约 40–80GB。
+- 全云端模式**现在预设也开 2 个 ComfyUI**（2026-10-11 起；之前只有 1 个，还要跟 Qwen、Music 3 轮流换模型，H3 每镜约 70 秒）。`film` 跑到 h3／amb 时用 2 个 ComfyUI 错开跑（`cloud/vm/parallel_h3.py`，`H3_PARALLEL=2`）。2026-10-11 实战：完整安装后 `batch` 25 镜 1 个 ComfyUI 跑 1594 秒（含上传下载）→ 之后改 2 个。
+- 范本可以直接跑 `pipeline/template_local`；做自己的片时照 `pipeline/template_local/README.md` 复制成 `pipeline/<片名>/`，再 `film pipeline/<片名> …`（资料夹一定要在 repo 里面）。
+- 每个人工关卡（首帧、H3 接触表、成片）之间，`film` 会把 `out/` 下载回来给你看；改了要重做的档案删掉，再跑下一段，`film` 会把整个片子资料夹重新上传，从断点接著做。
+- **本机设的 `ONLY`（只重做某几镜）、`ALLOW_REVIEW`、`UPSCALE` 会自动带到 VM**；其他设定用 `--env KEY=VALUE`（例：`film pipeline/template_local h3 --env ONLY=S3`）。
+- **VM 被收回（闲置约 20 分钟）或你 `stop` 之后**：重新 `full-setup`（约 10 分钟、约 1.5 单元），再 `film` 同一个资料夹就会从断点接著做。
+- 注意：云端跑出来的 `out/*.json`（`voice_picks`、`amb`、`music_pick`、`edl`）里存的是 `/content/...` 的云端路径；要在本机接著跑 `edl`／`cut` 得重跑前面那几段，建议全程在云端做完。
+- smoke_test 在 Linux 上自动跳过 `rtx_vsr`（只有 Windows 有），其余全部通过；Linux 的放大用 lanczos（`UPSCALE=lanczos`，预设）或 FlashVSR（`UPSCALE=flashvsr`）。片尾名单会依实际做法自动写成「在 Google Colab 执行」、放大工具照实列名。
 
-## 3b. 本機＋Colab 一起跑（本機有顯卡、也有 Google AI 訂閱）
+## 3b. 本机＋Colab 一起跑（本机有显卡、也有 Google AI 订阅）
 
 ```
 set H3_BACKEND=both                                # Linux/Mac：export H3_BACKEND=both
 python pipeline/template_local/make_film.py h3 amb # 或直接：python cloud/hybrid_h3.py out/h3/S01 out/h3/S02 ...
 ```
-- **做法**（`cloud/hybrid_h3.py`）：所有鏡頭放進同一個佇列。本機從前面一支一支拿、馬上開跑；Colab（只裝 H3）開機約 3.5 分鐘後加入，每次從後面拿一批（預設最多 8 支）交給 `colab_h3.py batch`，做完再拿。不事先對半分，因為兩邊速度不同、雲端晚開始。**佇列快空時依兩邊實測速度估算雲端該拿幾支**（讓兩邊差不多同時做完，少於 2 支就不再派雲端）。雲端失敗的鏡頭放回佇列給本機重跑；做完在背景 `stop`（`HYBRID_KEEP=1` 不關，審片後重抽可以接著用）。
-- **2026-10-11 實測**（直式短片 34 鏡、3370 格、DMAD 4 步，RTX 5090＋G4、每批 8 支）：**17.9 分鐘**完成（本機 15 支、雲端 19 支、失敗 0）；同一輪本機每格 0.58 秒 → 全部本機推算 32.6 分鐘，**省 45%**；Colab **1.97 單元**（含開機、關機）。G4 開機 216 秒（本機同時先做了 4 支）；每批 8 支約 304–314 秒，其中上傳、解壓、輪詢、下載約 70 秒。
-- **這次修進工具的坑**：①最後一批雲端拿走 3 支、本機只剩 1 支 → 本機做完空等約 140 秒 → 改成依速度估算尾巴的分配；②每 45 秒輪詢一次 → 改 15 秒（`COLAB_POLL`）；③每批 4 支耗損占比太高 → 預設 8 支；④關機算進等待 → 改背景關機；⑤本機要用自己正式版的 `h3_shot.py` → `HYBRID_TOOLS` 指定資料夾；⑥機房每次不同（美國俄亥俄、荷蘭），都在授權排除地區；⑦中途要停：本機連 `h3_shot.py` 子程序和 ComfyUI 佇列一起清（`POST /queue {"clear": true}`、`POST /interrupt`），Colab 上的批次要另外 `stop`。
-- **什麼時候值得**：鏡頭少於 `HYBRID_MIN`（預設 8）支會自動全部本機跑（不值得等雲端開機）；約 20 支以上才明顯快。少量重抽直接本機跑。
-- **限制**：接力鏡頭（spec 有 `first_clip`）等兩邊做完才由本機照順序跑；本機顯卡跑 H3 時不能同時配音（配音要先做完）；雲端部分一樣有上面的 H3 授權地區問題。本機要先開 ComfyUI。
-- 環境變數：`HYBRID_CHUNK`（雲端每批最多幾支，預設 8）、`HYBRID_MIN`（預設 8）、`HYBRID_KEEP=1`、`HYBRID_TOOLS`、`COLAB_NAME`、`COLAB_POLL`、`HYBRID_COLAB_HOMES`（兩個以上帳號，見下）。
-- **大量分鏡要開幾台：開機前先跑 `python cloud/colab_plan.py <spec 清單或鏡頭資料夾>`，把它印的建議告訴使用者、等使用者同意再開（2026-11-06 起，agent 必做）**。它會讀每支 spec 的秒數、步數、解析度估算，查本機忙不忙（ComfyUI 佇列、顯卡用量）和各帳號餘額，印出 0–4 台的時間與單元，以及一段可以直接問使用者的話。
-  - 參數（〈孔子來代課〉第 9 集 220 鏡全本機 205.5 分、主題曲 MV 雲端兩批 29／30 鏡校正）：本機 DMAD 每格約 0.51 秒（14 步約 1.07）＋每鏡 5 秒；一台 G4（2 個 ComfyUI）≈ 本機 1.5 倍速；開機約 3.7 分、收尾約 1 分；餘額實扣每台 8.0–9.7 單元／小時（算 9）。
-  - M＝本機全部跑完的分鐘數；本機一起跑 T ≈ 3.7 ＋ (M − 3.7) ÷ (1 ＋ 1.5k) ＋ 1；只有雲端 T ≈ 3.7 ＋ M ÷ 1.5k ＋ 1；單元 ≈ k × T × 9 ÷ 60。
-  - 建議台數：一台一台往上加，多開這台「每多花 1 單元至少省 5 分鐘」才加；上限＝帳號數 × 2、餘額要夠。同帳號兩台：家目錄寫兩次（`HYBRID_COLAB_HOMES=default;default`）。
-  - 對照實測：第 9 集 220 鏡本機獨跑公式 205 分／實測 205.5 分（照建議本機＋4 台約 34 分、約 20 單元）；MV 29 鏡雲端 1 台公式 23.6 分／實測 21.7 分；〈One Minute with Mina〉50 鏡雲端 1 台 46.7 分／48 分；〈Make Our Own Light〉40 鏡 31.9 分／30 分。
-  - ⚠ Colab 開機失敗時 `hybrid_h3.py` 會默默全部改本機跑（第 9 集就這樣多跑了約 3 小時）→ 開跑後看 log 確認雲端真的接到鏡頭，沒接到就告訴使用者。
-- **同一個帳號開兩台 G4 也可以（2026-11-06 實測，Google AI 方案帳號）**：`colab new -s <名稱> --gpu G4` 用不同名稱連開兩台，各約 5 秒 READY，兩台都是完整的 RTX PRO 6000 96 GB（機房可能不同，例如一台荷蘭一台美國）；`colab usage` 顯示扣費率 20.1 單元／小時（兩台合計，單台約 10）。用 `colab_h3.py --name h3_2 ...` 就能在同一個家目錄開第二台；記得兩台都要各自 stop。
-- **兩個 Colab 帳號同時跑（2026-10-29 實測）**：Colab CLI 的登入憑證放在家目錄（`~/.config/colab-cli/token.json`），一個家目錄＝一個帳號。第二個帳號：建一個空資料夾（例如 `C:\colab_home2`），在 cmd 跑 `set USERPROFILE=C:\colab_home2`、`set HOME=C:\colab_home2`、`colab usage`，瀏覽器登入第二個帳號（一次就好）。之後 `set HYBRID_COLAB_HOMES=default;C:\colab_home2`（Linux／macOS 用 `:` 分隔）→ 本機 1 個 ComfyUI＋每台 G4 各 2 個，各扣各自帳號的單元。實測 38 支 3–4.5 秒短鏡：**16.5 分鐘**（本機 10、兩台雲端 10＋18；推算全部本機約 37 分），兩個帳號各扣約 2.0 單元。G4 開機看機房：美國 216 秒、荷蘭 8.5 分（下載模型慢）→ 鏡頭少於約 20 支時開第二台不太划算。
+- **做法**（`cloud/hybrid_h3.py`）：所有镜头放进同一个伫列。本机从前面一支一支拿、马上开跑；Colab（只装 H3）开机约 3.5 分钟后加入，每次从后面拿一批（预设最多 8 支）交给 `colab_h3.py batch`，做完再拿。不事先对半分，因为两边速度不同、云端晚开始。**伫列快空时依两边实测速度估算云端该拿几支**（让两边差不多同时做完，少于 2 支就不再派云端）。云端失败的镜头放回伫列给本机重跑；做完在背景 `stop`（`HYBRID_KEEP=1` 不关，审片后重抽可以接著用）。
+- **2026-10-11 实测**（直式短片 34 镜、3370 格、DMAD 4 步，RTX 5090＋G4、每批 8 支）：**17.9 分钟**完成（本机 15 支、云端 19 支、失败 0）；同一轮本机每格 0.58 秒 → 全部本机推算 32.6 分钟，**省 45%**；Colab **1.97 单元**（含开机、关机）。G4 开机 216 秒（本机同时先做了 4 支）；每批 8 支约 304–314 秒，其中上传、解压、轮询、下载约 70 秒。
+- **这次修进工具的坑**：①最后一批云端拿走 3 支、本机只剩 1 支 → 本机做完空等约 140 秒 → 改成依速度估算尾巴的分配；②每 45 秒轮询一次 → 改 15 秒（`COLAB_POLL`）；③每批 4 支耗损占比太高 → 预设 8 支；④关机算进等待 → 改背景关机；⑤本机要用自己正式版的 `h3_shot.py` → `HYBRID_TOOLS` 指定资料夹；⑥机房每次不同（美国俄亥俄、荷兰），都在授权排除地区；⑦中途要停：本机连 `h3_shot.py` 子程序和 ComfyUI 伫列一起清（`POST /queue {"clear": true}`、`POST /interrupt`），Colab 上的批次要另外 `stop`。
+- **什么时候值得**：镜头少于 `HYBRID_MIN`（预设 8）支会自动全部本机跑（不值得等云端开机）；约 20 支以上才明显快。少量重抽直接本机跑。
+- **限制**：接力镜头（spec 有 `first_clip`）等两边做完才由本机照顺序跑；本机显卡跑 H3 时不能同时配音（配音要先做完）；云端部分一样有上面的 H3 授权地区问题。本机要先开 ComfyUI。
+- 环境变数：`HYBRID_CHUNK`（云端每批最多几支，预设 8）、`HYBRID_MIN`（预设 8）、`HYBRID_KEEP=1`、`HYBRID_TOOLS`、`COLAB_NAME`、`COLAB_POLL`、`HYBRID_COLAB_HOMES`（两个以上帐号，见下）。
+- **大量分镜要开几台：开机前先跑 `python cloud/colab_plan.py <spec 清单或镜头资料夹>`，把它印的建议告诉使用者、等使用者同意再开（2026-11-06 起，agent 必做）**。它会读每支 spec 的秒数、步数、解析度估算，查本机忙不忙（ComfyUI 伫列、显卡用量）和各帐号余额，印出 0–4 台的时间与单元，以及一段可以直接问使用者的话。
+  - 参数（〈孔子来代课〉第 9 集 220 镜全本机 205.5 分、主题曲 MV 云端两批 29／30 镜校正）：本机 DMAD 每格约 0.51 秒（14 步约 1.07）＋每镜 5 秒；一台 G4（2 个 ComfyUI）≈ 本机 1.5 倍速；开机约 3.7 分、收尾约 1 分；余额实扣每台 8.0–9.7 单元／小时（算 9）。
+  - M＝本机全部跑完的分钟数；本机一起跑 T ≈ 3.7 ＋ (M − 3.7) ÷ (1 ＋ 1.5k) ＋ 1；只有云端 T ≈ 3.7 ＋ M ÷ 1.5k ＋ 1；单元 ≈ k × T × 9 ÷ 60。
+  - 建议台数：一台一台往上加，多开这台「每多花 1 单元至少省 5 分钟」才加；上限＝帐号数 × 2、余额要够。同帐号两台：家目录写两次（`HYBRID_COLAB_HOMES=default;default`）。
+  - 对照实测：第 9 集 220 镜本机独跑公式 205 分／实测 205.5 分（照建议本机＋4 台约 34 分、约 20 单元）；MV 29 镜云端 1 台公式 23.6 分／实测 21.7 分；〈One Minute with Mina〉50 镜云端 1 台 46.7 分／48 分；〈Make Our Own Light〉40 镜 31.9 分／30 分。
+  - ⚠ Colab 开机失败时 `hybrid_h3.py` 会默默全部改本机跑（第 9 集就这样多跑了约 3 小时）→ 开跑后看 log 确认云端真的接到镜头，没接到就告诉使用者。
+- **同一个帐号开两台 G4 也可以（2026-11-06 实测，Google AI 方案帐号）**：`colab new -s <名称> --gpu G4` 用不同名称连开两台，各约 5 秒 READY，两台都是完整的 RTX PRO 6000 96 GB（机房可能不同，例如一台荷兰一台美国）；`colab usage` 显示扣费率 20.1 单元／小时（两台合计，单台约 10）。用 `colab_h3.py --name h3_2 ...` 就能在同一个家目录开第二台；记得两台都要各自 stop。
+- **两个 Colab 帐号同时跑（2026-10-29 实测）**：Colab CLI 的登入凭证放在家目录（`~/.config/colab-cli/token.json`），一个家目录＝一个帐号。第二个帐号：建一个空资料夹（例如 `C:\colab_home2`），在 cmd 跑 `set USERPROFILE=C:\colab_home2`、`set HOME=C:\colab_home2`、`colab usage`，浏览器登入第二个帐号（一次就好）。之后 `set HYBRID_COLAB_HOMES=default;C:\colab_home2`（Linux／macOS 用 `:` 分隔）→ 本机 1 个 ComfyUI＋每台 G4 各 2 个，各扣各自帐号的单元。实测 38 支 3–4.5 秒短镜：**16.5 分钟**（本机 10、两台云端 10＋18；推算全部本机约 37 分），两个帐号各扣约 2.0 单元。G4 开机看机房：美国 216 秒、荷兰 8.5 分（下载模型慢）→ 镜头少于约 20 支时开第二台不太划算。
 
-## 4. 實測：該租哪張卡
+## 4. 实测：该租哪张卡
 
-同一個鏡頭（90 格、1344×768、DMAD 4 步）、同一個 seed，與 RTX 5090 本機成品比較：
+同一个镜头（90 格、1344×768、DMAD 4 步）、同一个 seed，与 RTX 5090 本机成品比较：
 
-| GPU（Colab） | 顯存／記憶體 | 每小時運算單元 | 每支秒數 | 每支單元 | 跟 5090 成品比 |
+| GPU（Colab） | 显存／记忆体 | 每小时运算单元 | 每支秒数 | 每支单元 | 跟 5090 成品比 |
 |---|---|---|---|---|---|
-| **G4＝RTX PRO 6000 Blackwell** | 96GB／176GB | **8.90** | **42**（模型留在顯存）／50（每支重載） | **0.10** | PSNR 45.9 dB |
+| **G4＝RTX PRO 6000 Blackwell** | 96GB／176GB | **8.90** | **42**（模型留在显存）／50（每支重载） | **0.10** | PSNR 45.9 dB |
 | A100 40GB | 40GB／83GB | 5.30 | 210–270 | 0.31–0.40 | PSNR 45.8 dB |
 | L4 | 22.5GB／52GB | 1.54 | 310–399 | 0.13–0.17 | PSNR 43–45 dB |
-| T4 | 15GB／**12GB** | 1.07 | 記憶體太小，跑不了 | — | — |
-| H100 | — | — | AI Pro 帳號不能開（「沒有配額或權限」） | — | — |
+| T4 | 15GB／**12GB** | 1.07 | 记忆体太小，跑不了 | — | — |
+| H100 | — | — | AI Pro 帐号不能开（「没有配额或权限」） | — | — |
 
-- **H3 只用 G4**：L4 每一步取樣約 33 秒、G4 約 4.4 秒（慢 7.5 倍，主因是晶片算力，不是記憶體），單元反而多 3 成；A100 吃不到這套 int8／FP16 累加加速，慢 4–5 倍、單元 3 倍。畫面都一樣，只差速度。
-- G4 和 RTX 5090 是同一顆 GB202 晶片、記憶體頻寬相同，所以**單支速度跟 5090 一樣**；多出來的是顯存、記憶體和 48 核 CPU。
+- **H3 只用 G4**：L4 每一步取样约 33 秒、G4 约 4.4 秒（慢 7.5 倍，主因是晶片算力，不是记忆体），单元反而多 3 成；A100 吃不到这套 int8／FP16 累加加速，慢 4–5 倍、单元 3 倍。画面都一样，只差速度。
+- G4 和 RTX 5090 是同一颗 GB202 晶片、记忆体频宽相同，所以**单支速度跟 5090 一样**；多出来的是显存、记忆体和 48 核 CPU。
 
-### 榨乾 G4（`setup_h3.py` 預設已套用）
+### 榨干 G4（`setup_h3.py` 预设已套用）
 
-| 設定 | 每小時幾支 | 每支單元 |
+| 设定 | 每小时几支 | 每支单元 |
 |---|---|---|
-| 一次 1 支、`--cache-none`（Windows 原設定） | 71 | 0.125 |
-| 一次 1 支、模型留在顯存 | 85（連續 24 支穩定） | 0.105 |
-| 2 個 ComfyUI 同時開始 | 110，但 8 支失敗 1 支（兩邊同時載入文字編碼器，96GB 撞滿） | — |
-| 3 個 ComfyUI | 101，每支 100–116 秒 | 0.088 |
+| 一次 1 支、`--cache-none`（Windows 原设定） | 71 | 0.125 |
+| 一次 1 支、模型留在显存 | 85（连续 24 支稳定） | 0.105 |
+| 2 个 ComfyUI 同时开始 | 110，但 8 支失败 1 支（两边同时载入文字编码器，96GB 撞满） | — |
+| 3 个 ComfyUI | 101，每支 100–116 秒 | 0.088 |
 | SageAttention | 每支 46 秒，比 comfy kitchen 的 42 秒慢 | — |
-| **2 個 ComfyUI、各 `--reserve-vram 46`、第二個晚 30 秒開始** | **123（10/10 成功）** | **0.073** |
+| **2 个 ComfyUI、各 `--reserve-vram 46`、第二个晚 30 秒开始** | **123（10/10 成功）** | **0.073** |
 
-單一支 H3 時 GPU 沒滿載（存每格 PNG、ffmpeg 合成等 CPU 工作），兩支交錯可以補空檔；但要錯開，否則同時載入文字編碼器會撞滿顯存。以上都是同一個 90 格鏡頭的數字，實際片子長短不一，比例應該差不多。
+单一支 H3 时 GPU 没满载（存每格 PNG、ffmpeg 合成等 CPU 工作），两支交错可以补空档；但要错开，否则同时载入文字编码器会撞满显存。以上都是同一个 90 格镜头的数字，实际片子长短不一，比例应该差不多。
 
-## 5. 時間、費用、審片
+## 5. 时间、费用、审片
 
-| 項目 | 實測 |
+| 项目 | 实测 |
 |---|---|
-| 從開機到可以跑 H3 | **約 3.5–4 分鐘**（下載 55GB 約 170 秒、裝套件約 165 秒，兩者同時進行） |
-| 一支 30 鏡短片的 H3 | 約 15 分鐘（加開機約 20 分鐘、**約 3 單元**） |
-| 200 運算單元 | 約 60 支 30 鏡短片（只算 H3） |
-| 換算台幣 | 隨用隨付每單元約 NT$3.4 → G4 每小時約 NT$30；外租同級 RTX PRO 6000 約 NT$52–67／小時 |
+| 从开机到可以跑 H3 | **约 3.5–4 分钟**（下载 55GB 约 170 秒、装套件约 165 秒，两者同时进行） |
+| 一支 30 镜短片的 H3 | 约 15 分钟（加开机约 20 分钟、**约 3 单元**） |
+| 200 运算单元 | 约 60 支 30 镜短片（只算 H3） |
+| 换算台币 | 随用随付每单元约 NT$3.4 → G4 每小时约 NT$30；外租同级 RTX PRO 6000 约 NT$52–67／小时 |
 
-- **Colab 閒置約 20 分鐘會自動收回機器**（實測：最後一次下指令後約 18–20 分鐘；機器上有程式在等待也一樣）。所以：
-  - 忘了關機最多浪費約 3 單元；
-  - 拍片過程中（拍完 → 檢查 → 重拍）**一律開著**，等「確定不再需要 H3、要交給人工審片」才關（重開只裝 H3 約 4 分鐘、完整安裝約 10 分鐘）；超過 20 分鐘沒動作機器會被收回，回來重新 `start` 即可；
-  - 要多保一會用 `keepalive`（照樣扣單元）。
-- `batch` 執行期間每 45 秒查一次進度，順便維持連線。H3 正在跑但完全不查進度會不會被收回，未測。
-- 單元 **90 天後失效**；買太多用不完會浪費。
+- **Colab 闲置约 20 分钟会自动收回机器**（实测：最后一次下指令后约 18–20 分钟；机器上有程式在等待也一样）。所以：
+  - 忘了关机最多浪费约 3 单元；
+  - 拍片过程中（拍完 → 检查 → 重拍）**一律开著**，等「确定不再需要 H3、要交给人工审片」才关（重开只装 H3 约 4 分钟、完整安装约 10 分钟）；超过 20 分钟没动作机器会被收回，回来重新 `start` 即可；
+  - 要多保一会用 `keepalive`（照样扣单元）。
+- `batch` 执行期间每 45 秒查一次进度，顺便维持连线。H3 正在跑但完全不查进度会不会被收回，未测。
+- 单元 **90 天后失效**；买太多用不完会浪费。
 
-### Google 方案怎麼選
+### Google 方案怎么选
 
-| 方案 | 價格 | Colab 單元 | 每單元 |
+| 方案 | 价格 | Colab 单元 | 每单元 |
 |---|---|---|---|
-| 隨用隨付 | 100 個 US$10.49／500 個 US$52.49 | — | 約 US$0.105 |
-| Colab Pro | US$10.49／月 | 100 | 約 US$0.105 |
-| Colab Pro+ | US$52.49／月 | 600（方案頁；有第三方寫 500） | 約 US$0.0875 |
+| 随用随付 | 100 个 US$10.49／500 个 US$52.49 | — | 约 US$0.105 |
+| Colab Pro | US$10.49／月 | 100 | 约 US$0.105 |
+| Colab Pro+ | US$52.49／月 | 600（方案页；有第三方写 500） | 约 US$0.0875 |
 | Google AI Plus | NT$165／月 | 未公布 | — |
-| Google AI Pro | NT$650／月 | 約 200 | 另含 5TB、Gemini 等 |
-| Google AI Ultra | NT$3,300 起 | 未公布（含高階 GPU、背景執行） | — |
+| Google AI Pro | NT$650／月 | 约 200 | 另含 5TB、Gemini 等 |
+| Google AI Ultra | NT$3,300 起 | 未公布（含高阶 GPU、背景执行） | — |
 
-本來就用 Gemini 的人 → AI Pro（等於附送）；只為了 H3 偶爾做片 → 隨用隨付；量很大 → Pro+；**不建議為了 Colab 買 Ultra**（高階 GPU 不保證是 H100，G4 已是跑 H3 最划算的卡）。
+本来就用 Gemini 的人 → AI Pro（等于附送）；只为了 H3 偶尔做片 → 随用随付；量很大 → Pro+；**不建议为了 Colab 买 Ultra**（高阶 GPU 不保证是 H100，G4 已是跑 H3 最划算的卡）。
 
-## 6. 網路
+## 6. 网路
 
-- 55GB 模型是 Colab 機器直接下載，**不經過你家網路**。
-- 經過你家網路的只有素材和成品：一張首幀約 1.5MB、一句配音約 0.4MB、一支 768p 成品約 3MB（FlashVSR 1080p 約 15MB）。`batch` 會把一整批打包成一個 zip 上傳、一個 zip 下載（Colab CLI 每個檔案往返要 2–5 秒，逐檔傳很慢）。
+- 55GB 模型是 Colab 机器直接下载，**不经过你家网路**。
+- 经过你家网路的只有素材和成品：一张首帧约 1.5MB、一句配音约 0.4MB、一支 768p 成品约 3MB（FlashVSR 1080p 约 15MB）。`batch` 会把一整批打包成一个 zip 上传、一个 zip 下载（Colab CLI 每个档案往返要 2–5 秒，逐档传很慢）。
 
-## 7. 踩坑紀錄（都已修進這套工具）
+## 7. 踩坑纪录（都已修进这套工具）
 
-| 問題 | 原因 → 解法 |
+| 问题 | 原因 → 解法 |
 |---|---|
-| Windows 上 `colab` 一執行就當掉 | `import termios` → `colab_cli_windows_patch.py` |
-| Git Bash 上傳到 `/content/...` 變成 `C:/.../PortableGit/content/...` | Git Bash 自動轉路徑 → 本工具用 Python 呼叫 CLI，不經過 Git Bash；自己在 Git Bash 下指令要 `MSYS_NO_PATHCONV=1` |
-| `colab exec` 偶爾 `Connection was lost`／`Timeout waiting for reply` | CLI 連線不穩（機器其實正常）→ 自動重試；長工作一律在 VM 上 `nohup` 背景跑、再輪詢記錄檔 |
-| 下載模型大量 `HTTP 429 Too Many Requests` | 舊 `download.py` 每 8MB 一個請求打 huggingface.co（26GB＝3,000 多次），多份清單同時跑就被限速 → 改寫 `download.py`：轉址只解析一次、每檔 16 段長串流、可續傳、429 退避；全雲端安裝一次只跑一份清單；可設 `HF_TOKEN` |
-| 舊 `download.py` 大檔要兩倍硬碟 | 先存分段再合併 → 新版直接寫進同一個檔 |
-| whisper：`libcublas.so.12` 找不到 | Linux 的 CUDA 12 函式庫是 pip 套件，安裝時被濾掉、執行時也不在搜尋路徑 → 安裝只濾掉 `名稱==` 完全相符的 Windows 套件；`tools/stt.py` 在 Linux 先預載 |
-| BreezyVoice：`No module named torchmetrics` | 過濾 `^torch` 時連 torchmetrics 一起拿掉 → 同上 |
-| 第 2、3 個 ComfyUI 啟動失敗 | 複製程式碼時「跳過 models 資料夾」連 `comfy/ldm/models`（程式碼）也跳過 → 只跳過最上層 |
-| 字幕、片尾中文變方塊 | 字型寫死 Windows 路徑 → `tools/fonts.py`（Linux 用 Noto CJK／文鼎楷書，`install_full.sh` 會裝） |
-| RTX VSR 在 Linux 不能用 | `nvvfx` 只有 Windows → `UPSCALE=lanczos`（預設）或 `flashvsr` |
-| Colab 的 L4／A100 跑 H3 | 能跑但又慢又貴 → 只用 G4 |
+| Windows 上 `colab` 一执行就当掉 | `import termios` → `colab_cli_windows_patch.py` |
+| Git Bash 上传到 `/content/...` 变成 `C:/.../PortableGit/content/...` | Git Bash 自动转路径 → 本工具用 Python 呼叫 CLI，不经过 Git Bash；自己在 Git Bash 下指令要 `MSYS_NO_PATHCONV=1` |
+| `colab exec` 偶尔 `Connection was lost`／`Timeout waiting for reply` | CLI 连线不稳（机器其实正常）→ 自动重试；长工作一律在 VM 上 `nohup` 背景跑、再轮询记录档 |
+| 下载模型大量 `HTTP 429 Too Many Requests` | 旧 `download.py` 每 8MB 一个请求打 huggingface.co（26GB＝3,000 多次），多份清单同时跑就被限速 → 改写 `download.py`：转址只解析一次、每档 16 段长串流、可续传、429 退避；全云端安装一次只跑一份清单；可设 `HF_TOKEN` |
+| 旧 `download.py` 大档要两倍硬碟 | 先存分段再合并 → 新版直接写进同一个档 |
+| whisper：`libcublas.so.12` 找不到 | Linux 的 CUDA 12 函式库是 pip 套件，安装时被滤掉、执行时也不在搜寻路径 → 安装只滤掉 `名称==` 完全相符的 Windows 套件；`tools/stt.py` 在 Linux 先预载 |
+| BreezyVoice：`No module named torchmetrics` | 过滤 `^torch` 时连 torchmetrics 一起拿掉 → 同上 |
+| 第 2、3 个 ComfyUI 启动失败 | 复制程式码时「跳过 models 资料夹」连 `comfy/ldm/models`（程式码）也跳过 → 只跳过最上层 |
+| 字幕、片尾中文变方块 | 字型写死 Windows 路径 → `tools/fonts.py`（Linux 用 Noto CJK／文鼎楷书，`install_full.sh` 会装） |
+| RTX VSR 在 Linux 不能用 | `nvvfx` 只有 Windows → `UPSCALE=lanczos`（预设）或 `flashvsr` |
+| Colab 的 L4／A100 跑 H3 | 能跑但又慢又贵 → 只用 G4 |
 
-## 8. 檔案
+## 8. 档案
 
-| 檔案 | 在哪執行 | 做什麼 |
+| 档案 | 在哪执行 | 做什么 |
 |---|---|---|
-| `colab_h3.py` | 你的電腦 | 開機、裝環境、批次跑 H3、保持連線、關機、全雲端 smoke／film（只用 Python 標準函式庫） |
-| `hybrid_h3.py` | 你的電腦 | 本機＋Colab 一起跑 H3（共用佇列；`H3_BACKEND=both`；`HYBRID_COLAB_HOMES` 可同時用兩個以上帳號） |
-| `colab_cli_windows_patch.py` | 你的電腦（Windows） | 讓 Colab CLI 在 Windows 上能啟動 |
-| `vm/setup_h3.py` | Colab | ComfyUI 0.40＋H3＋DMAD＋Veda（2026-10-16），開 1–3 個 ComfyUI（預設 2 個、錯開） |
-| `vm/run_batch.py` | Colab | 把一批鏡頭分給各個 ComfyUI 跑，寫進度、打包成品 |
-| `vm/install_full.sh` | Colab | 全雲端：語音三環境＋ComfyUI 全套＋字型＋全部模型 |
+| `colab_h3.py` | 你的电脑 | 开机、装环境、批次跑 H3、保持连线、关机、全云端 smoke／film（只用 Python 标准函式库） |
+| `hybrid_h3.py` | 你的电脑 | 本机＋Colab 一起跑 H3（共用伫列；`H3_BACKEND=both`；`HYBRID_COLAB_HOMES` 可同时用两个以上帐号） |
+| `colab_cli_windows_patch.py` | 你的电脑（Windows） | 让 Colab CLI 在 Windows 上能启动 |
+| `vm/setup_h3.py` | Colab | ComfyUI 0.40＋H3＋DMAD＋Veda（2026-10-16），开 1–3 个 ComfyUI（预设 2 个、错开） |
+| `vm/run_batch.py` | Colab | 把一批镜头分给各个 ComfyUI 跑，写进度、打包成品 |
+| `vm/install_full.sh` | Colab | 全云端：语音三环境＋ComfyUI 全套＋字型＋全部模型 |
 
-已有類似但只做「上傳參考圖＋提示詞 → Colab 跑 H3 → 下載」的開源工具：[killkli/minimax-h3-colab-skill](https://github.com/killkli/minimax-h3-colab-skill)（Codex 技能）。
+已有类似但只做「上传参考图＋提示词 → Colab 跑 H3 → 下载」的开源工具：[killkli/minimax-h3-colab-skill](https://github.com/killkli/minimax-h3-colab-skill)（Codex 技能）。

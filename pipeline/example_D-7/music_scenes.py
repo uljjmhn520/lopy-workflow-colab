@@ -1,5 +1,5 @@
-"""〈D-7〉配樂：MiniMax Music 3 純器樂三段 → 去人聲檢查選殘留最低 → 貼合長度＋交叉淡化 → post/music_bed.wav
-變身段（S11–S13）刻意不放音樂。需要先跑過一次 assemble.py（產生 post/starts.json）。
+"""〈D-7〉配乐：MiniMax Music 3 纯器乐三段 → 去人声检查选残留最低 → 贴合长度＋交叉淡化 → post/music_bed.wav
+变身段（S11–S13）刻意不放音乐。需要先跑过一次 assemble.py（产生 post/starts.json）。
 C:/AI/H3/venv/Scripts/python.exe music_scenes.py"""
 import json, os, subprocess, wave
 from pathlib import Path
@@ -32,7 +32,7 @@ for name, a, b, cap in SC:
                             "--seconds", str(min(300, max(need + 8, 40))), "--seed", str(seed), "--prefix", f"audio/MM3/mv_{name}_{seed}", "--out", str(d)], env=env, capture_output=True)
             g = list(d.glob("mv_*.flac"))
             if g: g[0].replace(flac)
-        if not flac.exists(): print(name, seed, "失敗", flush=True); continue
+        if not flac.exists(): print(name, seed, "失败", flush=True); continue
         if not list(d.glob("*Instrumental*.wav")):
             subprocess.run([r"C:\AI\Voice\venv\Scripts\audio-separator.exe", str(flac), "--model_filename", "model_bs_roformer_ep_317_sdr_12.9755.ckpt", "--model_file_dir", r"C:\AI\Voice\models\separator",
                             "--output_dir", str(d), "--output_format", "WAV"], env=env, capture_output=True)
@@ -40,10 +40,10 @@ for name, a, b, cap in SC:
         if not inst: continue
         xi, xv = rd(flac), rd(voc[0]); dur = len(xi) / SR
         resid = float(np.sqrt((xv ** 2).mean()) / (np.sqrt((rd(inst[0]) ** 2).mean()) + 1e-9))
-        print(name, seed, f"需要{need:.0f}s 實際{dur:.0f}s 人聲殘留{resid:.3f}", flush=True)
+        print(name, seed, f"需要{need:.0f}s 实际{dur:.0f}s 人声残留{resid:.3f}", flush=True)
         cand.append((resid + (0 if dur >= need * 0.6 else 1.0) + (0.0 if dur >= need else 0.03), seed, flac, dur, resid))
-    if not cand: print(name, "無候選"); continue
-    cand.sort(); picked[name] = (cand[0][2], cand[0][3], need, a, b); print("PICK", name, cand[0][1], f"殘留{cand[0][4]:.3f}", flush=True)
+    if not cand: print(name, "无候选"); continue
+    cand.sort(); picked[name] = (cand[0][2], cand[0][3], need, a, b); print("PICK", name, cand[0][1], f"残留{cand[0][4]:.3f}", flush=True)
 
 XF = int(2.0 * SR); bed = np.zeros((int(END * SR) + XF, 2), np.float32)
 for name, (p, dur, need, a, b) in picked.items():

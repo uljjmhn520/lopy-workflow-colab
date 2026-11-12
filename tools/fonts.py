@@ -1,5 +1,5 @@
 """Font paths that work on Windows and on Linux/Colab (2026-10-10).
-Windows: the system 標楷體 / 微軟正黑體 used by the original project.
+Windows: the system 标楷体 / 微软正黑体 used by the original project.
 Linux:   apt install fonts-noto-cjk fonts-arphic-ukai   (cloud/vm/install_full.sh does this)
 Override any of them with env FONT_KAI / FONT_JH / FONT_JHBD / SUB_FONT_NAME."""
 import os

@@ -1,7 +1,7 @@
-"""〈D-7〉H3 出片：讀 voice_state.json 建時間軸 → 每鏡 spec（固定音軌：台詞放在指定秒數，其餘靜音）→ h3_shot.py
-→ 自動品檢（切鏡／黑格），有問題換 seed 最多 3 次。可續跑。
+"""〈D-7〉H3 出片：读 voice_state.json 建时间轴 → 每镜 spec（固定音轨：台词放在指定秒数，其余静音）→ h3_shot.py
+→ 自动品检（切镜／黑格），有问题换 seed 最多 3 次。可续跑。
   C:\\AI\\H3\\venv\\Scripts\\python.exe pipeline_gen.py [--only S05 S07 ...] [--retake S05 ...] [--dry]
-狀態 gen_state.json；進度 PROGRESS.md；時間軸 timeline.json；各鏡輸出 h3/<id>_a<k>/，採用版複製到 h3/<id>/clip.mp4"""
+状态 gen_state.json；进度 PROGRESS.md；时间轴 timeline.json；各镜输出 h3/<id>_a<k>/，采用版复制到 h3/<id>/clip.mp4"""
 import json, os, subprocess, sys, time, wave, shutil, urllib.request
 from pathlib import Path
 import numpy as np
@@ -94,7 +94,7 @@ def main(only=None, retake=False, dry=False):
             print(sid, "OK" if r.returncode == 0 else (r.stdout + r.stderr)[-400:])
         return
     if not comfy_ok():
-        log("ComfyUI 沒有回應，停止"); return
+        log("ComfyUI 没有回应，停止"); return
     ids = [s["id"] for s in P.SHOTS if not only or s["id"] in only]
     for sid in ids:
         st = state["shots"].setdefault(sid, {"status": "todo", "attempts": []}); sh0 = P.BY_ID[sid]
@@ -106,7 +106,7 @@ def main(only=None, retake=False, dry=False):
             r = run([PYH3, H3SHOT, str(make_spec(sid, tl[sid], seed)), "--out", str(out)])
             clip = out / "clip.mp4"
             if not clip.exists():
-                st["attempts"].append(dict(seed=seed, error=(r.stdout + r.stderr)[-300:])); log(f"{sid} 失敗 {(r.stdout + r.stderr)[-200:]}"); save(); continue
+                st["attempts"].append(dict(seed=seed, error=(r.stdout + r.stderr)[-300:])); log(f"{sid} 失败 {(r.stdout + r.stderr)[-200:]}"); save(); continue
             q = qc(clip); q.update(seed=seed, dir=str(out), secs=round(time.time() - t0)); st["attempts"].append(q)
             log(f"{sid} try{k + base} {q}")
             score = q["cuts"] * 10 + q["black"]

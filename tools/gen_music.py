@@ -22,7 +22,7 @@ COMFY_DIR = Path(r"C:\AI\H3\ComfyUI-0.36.0")
 CKPT = "yue2_3b_int8_convrot.safetensors"
 
 DEFAULT_STYLE = "Mandarin pop, warm acoustic guitar, soft piano, 90 BPM, warm and sincere"
-DEFAULT_LYRICS = "[verse]\n你好 世界\n[chorus]\n這是一首歌\n"
+DEFAULT_LYRICS = "[verse]\n你好 世界\n[chorus]\n这是一首歌\n"
 
 
 def _req(host, path, data=None, timeout=60):

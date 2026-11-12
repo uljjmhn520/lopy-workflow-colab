@@ -1,16 +1,16 @@
-"""全本地示範片：從零做出一支約 20 秒、4 鏡的小短片，證明安裝好的工作流可以完整跑通。不需要任何外部素材。
-H3 venv 執行（ComfyUI 要先開：call configs\\profile.cmd → C:\\AI\\tools\\start_comfy.cmd）：
+"""全本地示范片：从零做出一支约 20 秒、4 镜的小短片，证明安装好的工作流可以完整跑通。不需要任何外部素材。
+H3 venv 执行（ComfyUI 要先开：call configs\\profile.cmd → C:\\AI\\tools\\start_comfy.cmd）：
   C:\\AI\\H3\\venv\\Scripts\\python.exe pipeline\\demo_local\\run_demo.py [stage ...]
-stage：chars → frames → voices → h3 → music → cut（不給就全部依序跑；已完成的檔案會跳過，可續跑）
-輸出 pipeline/demo_local/out/：角色定妝照、首幀、配音、H3 片段、配樂、cut/demo_1080p.mp4、timing.json
+stage：chars → frames → voices → h3 → music → cut（不给就全部依序跑；已完成的档案会跳过，可续跑）
+输出 pipeline/demo_local/out/：角色定妆照、首帧、配音、H3 片段、配乐、cut/demo_1080p.mp4、timing.json
 
-劇情（4 鏡）：放學後的教室。學生小芸舉手問老師明天考不考，老師說「要考」，小芸愣住，老師笑著補一句「考你會的」。
-做法都是本專案實測過的：
-- 角色：Qwen-Image 2.1 生「單張半身定妝照」（灰底、正面）。
-- 首幀：Qwen-Image-Edit 2511 附定妝照當參考（不訓練就能保持長相、又會照劇本演），直接出 1344×768。
-- 聲音：Breeze TTS 2 用文字描述設計角色聲音 → BreezyVoice 以它為參考念台詞（每句 8 候選）→ faster-whisper＋聲調比對（對照 edge-tts 標準台灣國語）自動挑最好的。
-- 影片：H3 DMAD 4 步、只給首幀、台詞放進固定音軌（不說話的鏡頭給靜音）。
-- 配樂：MiniMax Music 3 純器樂；放大：RTX VSR。"""
+剧情（4 镜）：放学后的教室。学生小芸举手问老师明天考不考，老师说「要考」，小芸愣住，老师笑著补一句「考你会的」。
+做法都是本专案实测过的：
+- 角色：Qwen-Image 2.1 生「单张半身定妆照」（灰底、正面）。
+- 首帧：Qwen-Image-Edit 2511 附定妆照当参考（不训练就能保持长相、又会照剧本演），直接出 1344×768。
+- 声音：Breeze TTS 2 用文字描述设计角色声音 → BreezyVoice 以它为参考念台词（每句 8 候选）→ faster-whisper＋声调比对（对照 edge-tts 标准台湾国语）自动挑最好的。
+- 影片：H3 DMAD 4 步、只给首帧、台词放进固定音轨（不说话的镜头给静音）。
+- 配乐：MiniMax Music 3 纯器乐；放大：RTX VSR。"""
 import json
 import os
 import re
@@ -20,7 +20,7 @@ import time
 import urllib.request
 import wave
 from pathlib import Path
-for _s in (sys.stdout, sys.stderr):                 # 中文輸出在非 UTF-8 主控台不變亂碼
+for _s in (sys.stdout, sys.stderr):                 # 中文输出在非 UTF-8 主控台不变乱码
     try:
         _s.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
@@ -43,29 +43,29 @@ CHARS = {
     "yun": dict(name="小芸", look="Xiaoyun, a bright 11-year-old Taiwanese schoolgirl with a short black bob haircut and straight bangs, round friendly face, "
                 "wearing a plain white short-sleeve school shirt",
                 voice_design="A bright, clear 11-year-old Taiwanese girl, curious and lively, natural Taiwanese Mandarin accent.",
-                voice_sample="老師，我想問一下，明天的數學課要不要帶量角器？我怕又忘記了。", h3_voice="a bright, clear 11-year-old girl's voice"),
-    "lin": dict(name="林老師", look="Mr. Lin, a kind Taiwanese male teacher in his early thirties with short neat black hair and thin black-rimmed glasses, "
+                voice_sample="老师，我想问一下，明天的数学课要不要带量角器？我怕又忘记了。", h3_voice="a bright, clear 11-year-old girl's voice"),
+    "lin": dict(name="林老师", look="Mr. Lin, a kind Taiwanese male teacher in his early thirties with short neat black hair and thin black-rimmed glasses, "
                 "wearing a light blue button-up shirt",
                 voice_design="A calm, warm Taiwanese man in his thirties, a gentle teacher, relaxed natural Taiwanese Mandarin accent.",
-                voice_sample="好，大家把課本收起來，今天我們先複習上禮拜教的內容，有問題隨時舉手。", h3_voice="a calm, warm adult male voice"),
+                voice_sample="好，大家把课本收起来，今天我们先复习上礼拜教的内容，有问题随时举手。", h3_voice="a calm, warm adult male voice"),
 }
 CINE = ("A cinematic film still from a Taiwanese coming-of-age movie, shot on Kodak Vision3 500T film with an anamorphic 50mm lens at f/2. "
         "Late-afternoon golden-hour sun pours in low through the classroom windows, warm backlight with a glowing rim light, hazy air with visible dusty "
         "light beams, warm amber color grade, shallow depth of field, subtle film grain. ")
 ROOM = "an empty Taiwanese elementary school classroom after school, wooden desks, a green chalkboard with nothing written on it"
 SHOTS = [
-    dict(id="S1", refs=["yun"], dur=4.4, line=("yun", "老師，明天要考試嗎？", 0.5),
+    dict(id="S1", refs=["yun"], dur=4.4, line=("yun", "老师，明天要考试吗？", 0.5),
          frame="Medium shot at eye level: the girl from <image1> sits at her wooden desk in " + ROOM + ", raising one hand and looking toward the front "
                "of the room with a curious, slightly worried face.",
          action="The girl keeps her hand raised and asks her question toward the front of the room, a little worried."),
-    dict(id="S2", refs=["lin"], dur=3.6, line=("lin", "要考。", 1.2),   # 單字台詞「考。」VoxCPM2 會念成亂音（實測），至少兩三個字
+    dict(id="S2", refs=["lin"], dur=3.6, line=("lin", "要考。", 1.2),   # 单字台词「考。」VoxCPM2 会念成乱音（实测），至少两三个字
          frame="Medium close-up at eye level: the man from <image1> stands at the front of " + ROOM + " next to the green chalkboard, holding a stack of "
                "papers, looking at the camera with a calm, neutral face.",
          action="The teacher pauses for a beat, then answers with one short word, calm and neutral."),
     dict(id="S3", refs=["yun"], dur=3.6, line=None,
          frame="Close-up: the girl from <image1> at her desk in " + ROOM + ", frozen in shock, eyes wide, mouth slightly open, her raised hand still in the air.",
          action="The girl stays frozen in shock; her raised hand slowly droops. She does not speak; her lips stay closed after the first second."),
-    dict(id="S4", refs=["lin", "yun"], dur=5.1, line=("lin", "考你會的。", 1.0),
+    dict(id="S4", refs=["lin", "yun"], dur=5.1, line=("lin", "考你会的。", 1.0),
          frame="Medium two-shot: in " + ROOM + ", the man from <image1> stands beside the desk of the girl from <image2>, smiling gently down at her; "
                "she looks up at him, surprised. Only these two people.",
          action="The teacher smiles and says his line gently; the girl's shocked face slowly relaxes into a relieved smile. Only the teacher speaks."),
@@ -130,7 +130,7 @@ def frames():
         dst = OUT / "first" / f"{s['id']}.png"
         if dst.exists():
             continue
-        # 參考圖之外，每一鏡都要照抄完整外觀描述（只寫「Keep the same person」時，Qwen-Edit 會掉眼鏡、換髮型；2026-10-07 實測）
+        # 参考图之外，每一镜都要照抄完整外观描述（只写「Keep the same person」时，Qwen-Edit 会掉眼镜、换发型；2026-10-07 实测）
         keep = " ".join(f"Keep exactly the same person as <image{i}>: same face, hairstyle and clothes — {CHARS[k]['look']}."
                         for i, k in enumerate(s["refs"], 1))
         p = keep + " New photo: " + CINE + s["frame"] + " No text, no watermark, no captions."
@@ -148,8 +148,8 @@ def voices():
     (OUT / "voice").mkdir(exist_ok=True)
     jobs = [dict(name=f"ref_{k}", text=c["voice_sample"], instruction=c["voice_design"], seed=7) for k, c in CHARS.items()]
     lines = [s["line"] for s in SHOTS if s["line"]]
-    # 挑音用的「台灣國語答案卷」：預設 edge-tts（原專案驗收過的做法；只產生參考音、不進成片，要連網、免費免帳號）。
-    # 沒網路時改用 Breeze 產生（2026-10-07 實測：跟 edge-tts 挑出的第一名只有 4/19 句相同，可靠度較低）。
+    # 挑音用的「台湾国语答案卷」：预设 edge-tts（原专案验收过的做法；只产生参考音、不进成片，要连网、免费免帐号）。
+    # 没网路时改用 Breeze 产生（2026-10-07 实测：跟 edge-tts 挑出的第一名只有 4/19 句相同，可靠度较低）。
     for i, (who, txt, _) in enumerate(lines):
         w = OUT / "voice" / f"tw_{i}.wav"
         if w.exists():
@@ -164,8 +164,8 @@ def voices():
             jobs.append(dict(name=f"tw_{i}", text=txt, instruction="A clear, neutral standard Taiwanese Mandarin news-reading voice, calm, precise tones.", seed=11))
     (OUT / "breeze.json").write_text(json.dumps(dict(out_dir="voice", jobs=jobs), ensure_ascii=False), encoding="utf-8")
     run([PYB, str(T / "breeze_batch.py"), "breeze.json"])
-    # 台詞：BreezyVoice 用設計好的聲音念，每句 8 個 seed → 自動挑（聽寫的拼音聲調要全對，再比台灣國語腔調分數）
-    # 念不準的字直接在台詞標注音，例如「連假[:ㄐㄧㄚ4]」（字幕用不含標記的原文）。
+    # 台词：BreezyVoice 用设计好的声音念，每句 8 个 seed → 自动挑（听写的拼音声调要全对，再比台湾国语腔调分数）
+    # 念不准的字直接在台词标注音，例如「连假[:ㄐㄧㄚ4]」（字幕用不含标记的原文）。
     bv_jobs = [dict(name=f"line{i}", text=txt, ref_audio=f"voice/ref_{who}.wav", ref_text=CHARS[who]["voice_sample"], tw_ref=f"voice/tw_{i}.wav", seeds=8)
                for i, (who, txt, _) in enumerate(lines)]
     (OUT / "bv.json").write_text(json.dumps(dict(out_dir="voice/bv", jobs=bv_jobs), ensure_ascii=False, indent=1), encoding="utf-8")
@@ -177,7 +177,7 @@ def voices():
         p = bp[f"line{i}"]
         if p["needs_review"]:
             best = next(c for c in p["cands"] if c["file"] == p["pick"])
-            raise SystemExit(f"台詞「{txt}」8 個候選聽寫都不對（最好的聽成「{best['asr']}」）。念錯的字請在台詞標注音（例：假[:ㄐㄧㄚ4]）或換說法，再刪掉 voice/bv 重跑。")
+            raise SystemExit(f"台词「{txt}」8 个候选听写都不对（最好的听成「{best['asr']}」）。念错的字请在台词标注音（例：假[:ㄐㄧㄚ4]）或换说法，再删掉 voice/bv 重跑。")
         best = next(c for c in p["cands"] if c["file"] == p["pick"])
         picks[i] = dict(file=str(OUT / "voice" / "bv" / f"line{i}.wav"), heard=best["asr"], tw_score=best.get("tw_score"))
         print("pick", txt, "→", p["pick"], best["asr"], flush=True)
@@ -209,7 +209,7 @@ def h3():
             dlg = [dict(subject=who, line=txt, lang="Chinese", after="Right after the line the speaker's lips close and stay closed.")]
             li += 1
         with wave.open(str(od / "guide.wav"), "wb") as w:
-            w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr); w.writeframes(bytes(buf))   # 不說話的鏡頭＝整段靜音，防止角色自己開口
+            w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr); w.writeframes(bytes(buf))   # 不说话的镜头＝整段静音，防止角色自己开口
         subs = [dict(key=k, desc=CHARS[k]["look"], voice=CHARS[k]["h3_voice"]) for k in s["refs"]]
         spec = dict(duration=round(secs - 0.02, 3), size=[1344, 768], seed=20261007, steps=14, draft=True,
                     style="a realistic cinematic live-action Taiwanese film shot on anamorphic lenses, 35mm grain, warm light with drifting dust",
