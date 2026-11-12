@@ -72,6 +72,11 @@ PRESETS = {
         unet="qwen_image_edit_uncensored_v1.1-fp8.safetensors", clip="qwen25_vl_7b_uncensored_fp8.safetensors",
         clip_type="qwen_image", vae="qwen_image_vae.safetensors",
         encoder="editplus", steps=16, cfg=1.0, sampler="euler", scheduler="simple", auraflow=3.1),
+    "minimax-image": dict(
+        unet="minimax_h3_image_pruned_int8_convrot.safetensors", clip="qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+        clip_type="minimax", vae="minimax_h3_image_vae_fp16.safetensors",
+        encoder="clip", steps=6, cfg=1.0, sampler="euler", scheduler="simple",
+        size=(768, 1344)),
 }
 
 # Official Qwen-Image 2.1 Turbo schedule (8 steps): stays >0.85 for 6 steps, then lands. Last 0 = fully denoised.
