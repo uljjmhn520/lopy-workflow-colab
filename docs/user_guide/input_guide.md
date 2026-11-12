@@ -28,6 +28,8 @@
 
 您只需要提供一个清晰的文字表格（支持 Markdown、Excel 或飞书多维表格复制），定义每一镜的演职安排。
 
+> 💡 **不想自己构思动作描写？** 您可以直接在终端打开 `agy`（Antigravity CLI），说一句故事灵感，内置的 `shanshiba-drama` 技能会自动为您扩写并生成完全符合上述格式的专业分镜表！详见 [第四章：AI 编剧技能与 Antigravity-CLI 联动指南](script_skills_and_antigravity.md)。
+
 ### 推荐标准剧本模板 (示例：15秒 3镜头短剧)
 
 ```markdown

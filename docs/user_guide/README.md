@@ -44,6 +44,7 @@ $$\text{1 次角色形象/音色建档} + \text{每期 1 张文字分镜表格} 
 | **第一章：输入准备指南** | [input_guide.md](file:///home/debian/lopy_project/lopy-workflow-colab/docs/user_guide/input_guide.md) | 详细指导如何准备角色定妆照、挑选音色，以及分镜剧本表格的填写规范与提示词技巧。 |
 | **第二章：输出规格与交付** | [output_spec.md](file:///home/debian/lopy_project/lopy-workflow-colab/docs/user_guide/output_spec.md) | 详述最终 MP4 成片的画质、口型、字幕标准，以及用于剪映/PR二次创作的工程切片包。 |
 | **第三章：三步极速上手** | [quickstart.md](file:///home/debian/lopy_project/lopy-workflow-colab/docs/user_guide/quickstart.md) | 手把手教您从一份极简文案开始，一键运行生成第一支 15 秒连贯短剧。 |
+| **第四章：剧本技能与CLI** | [script_skills_and_antigravity.md](file:///home/debian/lopy_project/lopy-workflow-colab/docs/user_guide/script_skills_and_antigravity.md) | 利用内置编剧技能（`shanshiba-drama`）与 Antigravity-CLI (`agy`) 对话一键扩写分镜表。 |
 
 ---
 
