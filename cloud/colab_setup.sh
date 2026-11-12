@@ -37,14 +37,14 @@ echo "=========================================================="
 echo ">>> [3/5] 部署 ComfyUI 及加速推理插件"
 echo "=========================================================="
 if [ ! -d "${COMFY_DIR}" ]; then
-    echo "Cloning ComfyUI v0.40.0..."
-    git clone -q --depth 1 --branch v0.40.0 https://github.com/comfyanonymous/ComfyUI "${COMFY_DIR}"
+    echo "Cloning ComfyUI latest master..."
+    git clone -q --depth 1 https://github.com/comfyanonymous/ComfyUI "${COMFY_DIR}"
 fi
 
 pip install -q uv
 # 保留 Colab 原生 torch/torchvision/torchaudio，仅安装 ComfyUI 纯 Python 依赖
 grep -viE '^(torch|torchvision|torchaudio)([=<> ]|$)' "${COMFY_DIR}/requirements.txt" > /tmp/req_comfy.txt
-uv pip install --system -q -r /tmp/req_comfy.txt comfy-kitchen==0.2.37 huggingface_hub
+uv pip install --system -q -r /tmp/req_comfy.txt "comfy-kitchen>=0.2.41" "comfy-aimdo>=0.6.0" huggingface_hub
 
 # 部署 Veda Sparse Attention 节点
 if [ ! -d "${COMFY_DIR}/custom_nodes/Veda-on-ComfyUI" ]; then

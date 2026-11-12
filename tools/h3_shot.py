@@ -321,8 +321,13 @@ def lint(prompt, duration=None):
 def req(path, data=None, timeout=60):
     r = urllib.request.Request(HOST + path, data=json.dumps(data).encode() if data is not None else None,
                                headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(r, timeout=timeout) as f:
-        return json.loads(f.read().decode())
+    try:
+        with urllib.request.urlopen(r, timeout=timeout) as f:
+            return json.loads(f.read().decode())
+    except urllib.error.HTTPError as e:
+        err_msg = e.read().decode("utf-8", errors="replace")
+        print(f"[ComfyUI HTTP {e.code} Error]: {err_msg}", file=sys.stderr)
+        raise
 
 
 # Veda sparse attention (2026-10-16; needs ComfyUI >= 0.38 + custom_nodes/Veda-on-ComfyUI + setup/downloads_veda.json).
@@ -349,9 +354,10 @@ def use_veda(spec):
 
 
 def stage(src, name):
-    d = COMFY / "input" / "h3_shot"
-    d.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(src, d / name)
+    dirs = [COMFY / "input" / "h3_shot", COMFY / "runtime" / "inputs" / "h3_shot"]
+    for d in dirs:
+        d.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, d / name)
     return f"h3_shot/{name}"
 
 

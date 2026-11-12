@@ -75,7 +75,7 @@ PRESETS = {
     "minimax-image": dict(
         unet="minimax_h3_image_pruned_int8_convrot.safetensors", clip="qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
         clip_type="minimax", vae="minimax_h3_image_vae_fp16.safetensors",
-        encoder="clip", steps=6, cfg=1.0, sampler="euler", scheduler="simple",
+        encoder="minimax", steps=6, cfg=1.0, sampler="euler", scheduler="simple",
         size=(768, 1344)),
 }
 
@@ -109,10 +109,13 @@ def ensure_server(host):
 def stage_image(image):
     p = Path(image)
     if p.is_file():
-        dest = COMFY_DIR / "input" / p.name
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        if p.resolve() != dest.resolve():
-            shutil.copy2(p, dest)
+        dests = [COMFY_DIR / "input" / p.name]
+        runtime_in = COMFY_DIR / "runtime" / "inputs" / p.name
+        dests.append(runtime_in)
+        for dest in dests:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            if p.resolve() != dest.resolve():
+                shutil.copy2(p, dest)
         return p.name
     return image
 
@@ -155,6 +158,28 @@ def build(a, preset, prompt):
         g["4"] = {"class_type": "TextEncodeQwenImage21", "inputs": ins}
         g["6"]["inputs"]["positive"] = ["4", 0]
         g["6"]["inputs"]["negative"] = ["4", 1]
+    elif enc == "minimax":
+        if refs:
+            inputs = {
+                "clip": ["2", 0],
+                "vae": ["3", 0],
+                "prompt": prompt,
+                "width": a.width,
+                "height": a.height,
+            }
+            for i, node in enumerate(refs, start=1):
+                inputs[f"images.image_{i}"] = [node, 0]
+            g["4"] = {"class_type": "MiniMaxH3ImageConditioning", "inputs": inputs}
+            g["9"] = {"class_type": "ConditioningZeroOut", "inputs": {"conditioning": ["4", 0]}}
+            g["6"]["inputs"]["positive"] = ["4", 0]
+            g["6"]["inputs"]["negative"] = ["9", 0]
+            g["6"]["inputs"]["latent_image"] = ["4", 1]
+            g.pop("5", None)
+        else:
+            g["4"] = {"class_type": "CLIPTextEncode", "inputs": {"clip": ["2", 0], "text": prompt}}
+            g["9"] = {"class_type": "ConditioningZeroOut", "inputs": {"conditioning": ["4", 0]}}
+            g["6"]["inputs"]["positive"] = ["4", 0]
+            g["6"]["inputs"]["negative"] = ["9", 0]
     elif enc == "clip":
         g["4"] = {"class_type": "CLIPTextEncode", "inputs": {"clip": ["2", 0], "text": prompt}}
         g["9"] = {"class_type": "ConditioningZeroOut", "inputs": {"conditioning": ["4", 0]}}
