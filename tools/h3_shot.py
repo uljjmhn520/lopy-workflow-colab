@@ -509,8 +509,18 @@ def generate(spec, prompt, base, out):
     if ok:
         v = (e["outputs"]["15"].get("images") or e["outputs"]["15"].get("videos"))[0]
         raw = out / "clip_savevideo.mp4"
-        shutil.copy2(COMFY / "output" / v.get("subfolder", "") / v["filename"], raw)
-        frames = [COMFY / "output" / "h3_shot_png" / tag / im["filename"] for im in e["outputs"]["16"]["images"]]
+        candidate_outs = [
+            COMFY / "output",
+            COMFY / "runtime" / "outputs",
+            Path("/content/lopy-workflow-colab/runtime/outputs")
+        ]
+        out_base = candidate_outs[0]
+        for c in candidate_outs:
+            if (c / v.get("subfolder", "") / v["filename"]).exists():
+                out_base = c
+                break
+        shutil.copy2(out_base / v.get("subfolder", "") / v["filename"], raw)
+        frames = [out_base / "h3_shot_png" / tag / im["filename"] for im in e["outputs"]["16"]["images"]]
         lst = out / "frames.txt"
         lst.write_text("".join(f"file '{f.as_posix()}'\nduration {1 / FPS:.6f}\n" for f in frames), encoding="utf-8")
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(lst), "-i", str(raw), "-r", str(FPS),

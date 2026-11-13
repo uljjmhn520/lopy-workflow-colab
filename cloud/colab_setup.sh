@@ -28,6 +28,11 @@ mkdir -p "${WORKSPACE_DIR}/runtime/inputs" \
          "${WORKSPACE_DIR}/runtime/chars" \
          "${WORKSPACE_DIR}/runtime/first"
 
+ln -sfn "${WORKSPACE_DIR}/runtime/inputs" "${WORKSPACE_DIR}/input"
+ln -sfn "${WORKSPACE_DIR}/runtime/outputs" "${WORKSPACE_DIR}/output"
+ln -sfn "${WORKSPACE_DIR}/runtime/chars" "${WORKSPACE_DIR}/chars"
+ln -sfn "${WORKSPACE_DIR}/runtime/first" "${WORKSPACE_DIR}/first"
+
 echo "=========================================================="
 echo ">>> [2/5] 安装系统依赖 (ffmpeg, aria2, git-lfs)"
 echo "=========================================================="

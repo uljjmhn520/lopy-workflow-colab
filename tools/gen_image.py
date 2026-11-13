@@ -31,6 +31,7 @@ Outputs go to ComfyUI/output/<prefix>_00001_.png (the script prints the path).
 """
 import argparse
 import os
+import sys
 import json
 import shutil
 import time
@@ -95,8 +96,13 @@ def _req(host, path, data=None, timeout=60):
         data=json.dumps(data).encode("utf-8") if data is not None else None,
         headers={"Content-Type": "application/json"},
     )
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return json.loads(r.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        err_msg = e.read().decode("utf-8", errors="replace")
+        print(f"[ComfyUI HTTP {e.code} Error on {path}]: {err_msg}", file=sys.stderr)
+        raise
 
 
 def ensure_server(host):
@@ -109,13 +115,20 @@ def ensure_server(host):
 def stage_image(image):
     p = Path(image)
     if p.is_file():
-        dests = [COMFY_DIR / "input" / p.name]
-        runtime_in = COMFY_DIR / "runtime" / "inputs" / p.name
-        dests.append(runtime_in)
+        dests = [
+            COMFY_DIR / "input" / p.name,
+            COMFY_DIR / "runtime" / "inputs" / p.name,
+            Path("/content/ComfyUI/input") / p.name,
+            Path("/content/lopy-workflow-colab/runtime/inputs") / p.name,
+            Path("/content/lopy-workflow-colab/input") / p.name,
+        ]
         for dest in dests:
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            if p.resolve() != dest.resolve():
-                shutil.copy2(p, dest)
+            try:
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                if p.resolve() != dest.resolve():
+                    shutil.copy2(p, dest)
+            except Exception:
+                pass
         return p.name
     return image
 
@@ -301,13 +314,37 @@ def main():
                 return
             for node_id, o in entry.get("outputs", {}).items():
                 for f in o.get("images", []) or []:
-                    path = COMFY_DIR / "output" / f.get("subfolder", "") / f.get("filename", "")
+                    sub = f.get("subfolder", "")
+                    fname = f.get("filename", "")
+                    candidate_dirs = [
+                        COMFY_DIR / "output",
+                        COMFY_DIR / "runtime" / "outputs",
+                        COMFY_DIR / "runtime" / "outputs" / "images",
+                        Path("/content/lopy-workflow-colab/runtime/outputs"),
+                        Path("/content/lopy-workflow-colab/runtime/outputs/images"),
+                    ]
+                    path = None
+                    for cd in candidate_dirs:
+                        c = cd / sub / fname if sub else cd / fname
+                        if c.is_file():
+                            path = c
+                            break
+                    if path is None:
+                        path = COMFY_DIR / "output" / sub / fname
+
                     print(f"[out] {path}")
                     if a.out:
                         dest = Path(a.out)
-                        dest.mkdir(parents=True, exist_ok=True)
-                        shutil.copy2(path, dest / path.name)
-                        print(f"[copy] {dest / path.name}")
+                        if dest.suffix:  # 指定了具体文件名 (如 /path/to/ref_lin.png)
+                            dest.parent.mkdir(parents=True, exist_ok=True)
+                            if dest.is_dir():
+                                shutil.rmtree(dest)
+                            shutil.copy2(path, dest)
+                            print(f"[copy] {dest}")
+                        else:  # 指定了目标目录
+                            dest.mkdir(parents=True, exist_ok=True)
+                            shutil.copy2(path, dest / path.name)
+                            print(f"[copy] {dest / path.name}")
             print(f"[done] total {time.time() - t0:.1f}s")
             return
 
