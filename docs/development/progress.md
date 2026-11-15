@@ -25,7 +25,14 @@
 | **STRUCT-01**| 物理工作区规范重构（`runtime/` 隔离、防污染与全库简体中文统一） | AI Assistant | **已完成** | 2026-11-12 |
 | **COLAB-01** | Google Colab 一键运行环境交付 (`colab_lopy_pipeline.ipynb` + `colab_setup.sh`) | AI Assistant | **已完成** | 2026-11-12 |
 | **IMG-05**   | MiniMax-H3-Image 图像模型可行性调研与 ComfyUI 节点方案设计 | AI Assistant | **已完成** | 2026-11-12 |
-| **COLAB-02** | 云端 Colab 实测（MiniMax-H3-Image 首帧 + MiniMax H3 视频批量出片与加速评测） | AI Assistant | **待开始** | - |
+| **COLAB-02** | 云端 Colab 实测（MiniMax H3 4镜批量出片与总装 `drama_zerozerozero_v1.mp4`） | AI Assistant | **已完成** | 2026-11-14 |
+| **CHAIN-01** | 尾帧接力一镜到底流水线研发（物理0像素跳跃，总装成片 `drama_zerozerozero_chained_v2.mp4`） | AI Assistant | **已完成** | 2026-11-15 |
+| **H3-ADV-01** | 【H3进阶】DMAD 4-Step 蒸馏推理加速（将单镜渲染压缩至3.5分钟，降耗65%） | AI Assistant | **待开始** | - |
+| **H3-ADV-02** | 【H3进阶】FlashVSR 工业级视频超分辨率（768p -> 1080p/2K 超清升阶与人脸微精修） | AI Assistant | **待开始** | - |
+| **H3-ADV-03** | 【H3进阶】FL2VA 首尾双帧强制闭环与多帧接力（首尾双锁插值 + `first_clip` 惯性延续） | AI Assistant | **待开始** | - |
+| **H3-ADV-04** | 【H3进阶】多说话人同框交互与固定音轨对齐（至多3角色独立音色唇形同步 + `audio.fixed`） | AI Assistant | **待开始** | - |
+| **H3-ADV-05** | 【H3进阶】Fun ControlNet Union 骨骼姿态与 3D 白模导轨（SDPose姿态锁定与Blender导轨） | AI Assistant | **待开始** | - |
+| **H3-ADV-06** | 【H3进阶】独立身份图多图注入与换头/换装 LoRA（`identity_image` 防换脸漂移） | AI Assistant | **待开始** | - |
 | **PIPE-01**  | 基于 demo_local 跑通 4 镜头 9:16 端到端样片闭环 | - | **待开始** | - |
 | **CUSTOM-01**| 建立用户自有商业 IP 角色资产卡、音色库与定制剧本 | - | **待开始** | - |
 

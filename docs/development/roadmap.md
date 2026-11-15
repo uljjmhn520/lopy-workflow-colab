@@ -75,7 +75,28 @@ flowchart TD
   - **Colab 一键式运行资产**：已就绪 [colab_lopy_pipeline.ipynb](file:///home/debian/lopy_project/lopy-workflow-colab/colab_lopy_pipeline.ipynb) 与 [cloud/colab_setup.sh](file:///home/debian/lopy_project/lopy-workflow-colab/cloud/colab_setup.sh)。
   - **云端批处理管线**：支持单镜/多镜任务（S01~S04）一次性上传、并行渲染并打包回传本地 `runtime/outputs/`。
   - **模型持久化方案**：支持直接挂载 Google Drive，避免每次开机重复拉取 42GB 权重。
+  - **长镜头接力生成机制**：实装基于尾帧接力（Autoregressive Frame Chaining）的一镜到底全自动管线。
 * **验收标准**：通过 Colab L4 在 10 分钟内完成 4 镜短剧的全部视频生成。
+
+---
+
+### 阶段三·进阶：MiniMax H3 高阶潜能解锁与专项测试计划（新增规划 🌟）
+> 详细技术规范与节点配置请参阅专题文档：[09_MiniMax_H3_高阶能力规划与测试台账.md](file:///home/debian/lopy_project/lopy-workflow-colab/docs/09_MiniMax_H3_高阶能力规划与测试台账.md)
+
+为了突破传统“单帧生图+纯文本动作猜想”的局限，全面激活 MiniMax H3 官方与开源生态的完整能力：
+
+1. **【H3-ADV-01】DMAD 4-Step 蒸馏推理加速（优先级：⭐️⭐️⭐️⭐️⭐️）**：
+   - 引入 DMAD 4-Step LoRA + Sigma Shift（video 12, audio 2），将 14 步推理压缩至 4 步，渲染耗时由 12 分钟暴降至 3.5 分钟，降低 65% 云端算力开销。
+2. **【H3-ADV-02】FlashVSR 工业级视频超分辨率（优先级：⭐️⭐️⭐️⭐️）**：
+   - 接入 FlashVSR-v1.1 (Wan2.1 VAE + Streaming DMD) 与 Face Refine 人脸追踪重绘，将 768p 竖屏成片无损升阶至 1080p/2K 超清。
+3. **【H3-ADV-03】FL2VA 首尾双帧强制闭环与多帧接力（优先级：⭐️⭐️⭐️⭐️）**：
+   - 启用 `minimax_h3_fl2va` 模型同时锁定首帧与尾帧，解决人物大位移/落座穿模；接入 `first_clip` 多帧动量继承，消除接力顿挫。
+4. **【H3-ADV-04】多说话人同框交互与固定音轨对齐（优先级：⭐️⭐️⭐️）**：
+   - 启用 `ref_audio_0..2` 支持同框至多 3 角色独立音色唇形同步；支持 `audio.fixed` 模式纯音轨驱动。
+5. **【H3-ADV-05】ControlNet Union 骨骼姿态与 3D 白模导轨（优先级：⭐️⭐️⭐️）**：
+   - 接入 `minimax_h3_fun_controlnet_union`（SDPose 骨骼锁定）与 Blender Previs 假人轨迹视频，约束打戏与复杂动作。
+6. **【H3-ADV-06】独立身份图多图注入与换头/换装 LoRA（优先级：⭐️⭐️⭐️）**：
+   - 首帧外挂载 `identity_image` 防止大角度运镜换脸漂移；测试 Character Swap / Head Swap 专项 LoRA。
 
 ---
 
