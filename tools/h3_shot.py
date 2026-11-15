@@ -504,9 +504,19 @@ def generate(spec, prompt, base, out):
         h = req(f"/history/{pid}")
         if pid in h:
             break
-    e = h[pid]
+        try:
+            q = req("/queue")
+            running = [x[1] for x in q.get("queue_running", [])]
+            pending = [x[1] for x in q.get("queue_pending", [])]
+            if pid not in running and pid not in pending:
+                time.sleep(2)
+                h = req(f"/history/{pid}")
+                break
+        except Exception:
+            pass
+    e = h.get(pid, {})
     ok = e.get("status", {}).get("status_str") == "success"
-    if ok:
+    if ok and "outputs" in e and "15" in e["outputs"]:
         v = (e["outputs"]["15"].get("images") or e["outputs"]["15"].get("videos"))[0]
         raw = out / "clip_savevideo.mp4"
         candidate_outs = [

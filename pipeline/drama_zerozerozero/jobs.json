@@ -1,0 +1,33 @@
+{
+  "out_dir": "audio",
+  "seeds": 3,
+  "jobs": [
+    {
+      "name": "s01",
+      "text": "",
+      "note": "纯环境音效与脚步声，无对白",
+      "ref_audio": "audio/ref_emma.wav",
+      "ref_text": "在我的航线上，没有任何人可以扣留属于我的集装箱。"
+    },
+    {
+      "name": "s02",
+      "text": "",
+      "note": "纯压迫感环境音与呼吸微动，无对白",
+      "ref_audio": "audio/ref_emma.wav",
+      "ref_text": "在我的航线上，没有任何人可以扣留属于我的集装箱。"
+    },
+    {
+      "name": "s03",
+      "text": "",
+      "note": "入座沉闷摩擦与全场死寂，无对白",
+      "ref_audio": "audio/ref_emma.wav",
+      "ref_text": "在我的航线上，没有任何人可以扣留属于我的集装箱。"
+    },
+    {
+      "name": "s04",
+      "text": "尸体处理完之前[:ㄑㄧㄢ2]，我们先把货款结[:ㄐㄧㄝ2]了。叫能做主的人出来。",
+      "ref_audio": "audio/ref_emma.wav",
+      "ref_text": "在我的航线上，没有任何人可以扣留属于我的集装箱。"
+    }
+  ]
+}
