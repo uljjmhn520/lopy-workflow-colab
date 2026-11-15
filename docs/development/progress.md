@@ -30,8 +30,8 @@
 | **H3-ADV-01** | 【H3进阶】DMAD 4-Step 蒸馏推理加速（`drama_zerozerozero_v4` 实测 2.5 倍加速出片） | AI Assistant | **已完成** | 2026-11-15 |
 | **H3-ADV-02** | 【H3进阶】FlashVSR 工业级视频超分辨率（`drama_zerozerozero_v3.fv` 实测 2K 1536×2688 交付） | AI Assistant | **已完成** | 2026-11-15 |
 | **H3-ADV-03** | 【H3进阶】FL2VA 首尾双帧强制闭环与多帧接力（首尾双锁插值已在 `drama_zerozerozero_v3` 实测圆满交付） | AI Assistant | **已完成** | 2026-11-15 |
-| **H3-ADV-04** | 【H3进阶】多说话人同框交互与固定音轨对齐（至多3角色独立音色唇形同步 + `audio.fixed`） | AI Assistant | **待开始** | - |
-| **H3-ADV-05** | 【H3进阶】Fun ControlNet Union 骨骼姿态与 3D 白模导轨（SDPose姿态锁定与Blender导轨） | AI Assistant | **待开始** | - |
+| **H3-ADV-04** | 【H3进阶】多说话人同框交互与固定音轨对齐（双角色独立音色与交替唇形同步已在 `drama_zerozerozero_v5` 实测圆满交付） | AI Assistant | **已完成** | 2026-11-15 |
+| **H3-ADV-05** | 【H3进阶】战术武器大动态与肢体对抗对峙（S05 拔枪上膛瞄准动作在 `drama_zerozerozero_v5` 实测圆满交付） | AI Assistant | **已完成** | 2026-11-15 |
 | **H3-ADV-06** | 【H3进阶】独立身份图多图注入与换头/换装 LoRA（`identity_image` 防换脸漂移） | AI Assistant | **待开始** | - |
 | **PIPE-01**  | 基于 demo_local 跑通 4 镜头 9:16 端到端样片闭环 | - | **待开始** | - |
 | **CUSTOM-01**| 建立用户自有商业 IP 角色资产卡、音色库与定制剧本 | - | **待开始** | - |
